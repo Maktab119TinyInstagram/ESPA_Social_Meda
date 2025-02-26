@@ -40,8 +40,8 @@ Ensure you have the following installed:
 
 1️⃣ **Clone the Repository:**
 ```bash
-git clone https://github.com/your-repo/social-network.git
-cd social-network
+git clone [https://github.com/your-repo/social-network.git](https://github.com/Maktab119TinyInstagram/ESPA.git)
+cd ESPA
 ```
 
 2️⃣ **Create a Virtual Environment & Activate It:**
