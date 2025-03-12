@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | ESPA Social Network</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#0390b7',
+                        secondary: '#063346',
+                        light: '#ebffff',
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <!-- Custom CSS -->
+    <style>
+        body {
+            background-color: #ebffff;
+        }
+        
+        .navbar {
+            background-color: #063346;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .active-nav-link {
+            color: #0390b7;
+            border-bottom: 2px solid #0390b7;
+        }
+    </style>
+    
+    
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar fixed top-0 left-0 right-0 z-50">
+        <div class="container mx-auto px-4 py-2">
+            <div class="flex justify-between items-center">
+                <!-- Logo -->
+                <a href="/" class="text-2xl font-bold text-primary">ESPA</a>
+                
+                <!-- Search Bar (Medium and larger screens) -->
+                <div class="hidden md:block w-1/3">
+                    <form action="/posts/search/" method="GET" class="relative">
+                        <input type="text" name="q" placeholder="Search..." class="w-full px-4 py-2 border rounded-full focus:outline-none focus:ring-2 focus:ring-primary">
+                        <button type="submit" class="absolute right-3 top-2 text-gray-500">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </form>
+                </div>
+                
+                <!-- Navigation Links -->
+                <div class="flex items-center space-x-6">
+                    <a href="/" class="nav-link py-4 px-2 text-light ">
+                        <i class="fas fa-home text-xl"></i>
+                    </a>
+                    <a href="/posts/explore/" class="nav-link py-4 px-2 text-light ">
+                        <i class="fas fa-compass text-xl"></i>
+                    </a>
+                    <a href="/posts/post/create/" class="nav-link py-4 px-2 text-light ">
+                        <i class="fas fa-plus-square text-xl"></i>
+                    </a>
+                    <a href="#" class="nav-link py-4 px-2 text-light ">
+                        <i class="fas fa-bell text-xl"></i>
+                    </a>
+                    
+                    <!-- User Dropdown -->
+                    <div class="relative" id="user-dropdown">
+                        <button class="flex items-center focus:outline-none">
+                            
+                                <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
+                                    <span class="text-light font-bold"></span>
+                                </div>
+                            
+                        </button>
+                        
+                        <div class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 hidden" id="dropdown-menu">
+                            <a href="#" class="block px-4 py-2 text-secondary hover:bg-light">
+                                <i class="fas fa-user mr-2"></i> Profile
+                            </a>
+                            <a href="#" class="block px-4 py-2 text-secondary hover:bg-light">
+                                <i class="fas fa-cog mr-2"></i> Settings
+                            </a>
+                            <div class="border-t border-gray-200 my-1"></div>
+                            <a href="/logout/" class="block px-4 py-2 text-secondary hover:bg-light">
+                                <i class="fas fa-sign-out-alt mr-2"></i> Logout
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Search Bar (Small screens) -->
+            <div class="md:hidden mt-2">
+                <form action="/posts/search/" method="GET" class="relative">
+                    <input type="text" name="q" placeholder="Search..." class="w-full px-4 py-2 border rounded-full focus:outline-none focus:ring-2 focus:ring-primary">
+                    <button type="submit" class="absolute right-3 top-2 text-gray-500">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 pt-20 pb-10">
+        
+<div class="flex justify-center items-center min-h-[calc(100vh-200px)]">
+    <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+        <h1 class="text-2xl font-bold mb-6 text-center text-secondary">Login to ESPA</h1>
+        
+        
+        
+        <form id="login-form" class="space-y-4">
+            <input type="hidden" name="csrfmiddlewaretoken" value="6QkJ5gk3IMtSkHgytZc1h5poDL9yl8WZnlPpHiM05zIgDMyynH52fm5s62C0rdUx">
+            <div>
+                <label for="username" class="block text-secondary mb-2">Username or Email</label>
+                <input type="text" id="username" name="username" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" required>
+            </div>
+            
+            <div>
+                <label for="password" class="block text-secondary mb-2">Password</label>
+                <input type="password" id="password" name="password" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" required>
+            </div>
+            
+            <div class="flex items-center">
+                <input type="checkbox" id="remember" name="remember" class="mr-2">
+                <label for="remember" class="text-secondary">Remember me</label>
+            </div>
+            
+            <button type="submit" class="w-full bg-primary text-white py-2 px-4 rounded-lg hover:bg-opacity-90 transition duration-200">
+                Login
+            </button>
+        </form>
+        
+        <div class="mt-6 text-center">
+            <p class="text-secondary">Don't have an account? <a href="/register/" class="text-primary hover:underline">Register</a></p>
+            <p class="mt-2">
+                <a href="/password-reset/" class="text-primary hover:underline">Forgot password?</a>
+            </p>
+        </div>
+    </div>
+</div>
+
+    </div>
+    
+    <!-- Footer -->
+    <footer class="bg-secondary text-light py-6 mt-10">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-4 md:mb-0">
+                    <p>&copy; 2023 ESPA Social Network. All rights reserved.</p>
+                </div>
+                <div class="flex space-x-4">
+                    <a href="#" class="text-light hover:text-primary">
+                        <i class="fab fa-facebook-f"></i>
+                    </a>
+                    <a href="#" class="text-light hover:text-primary">
+                        <i class="fab fa-twitter"></i>
+                    </a>
+                    <a href="#" class="text-light hover:text-primary">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                    <a href="#" class="text-light hover:text-primary">
+                        <i class="fab fa-linkedin-in"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- JavaScript -->
+    <script>
+        // Toggle dropdown menu
+        document.getElementById('user-dropdown').addEventListener('click', function() {
+            document.getElementById('dropdown-menu').classList.toggle('hidden');
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('user-dropdown');
+            const dropdownMenu = document.getElementById('dropdown-menu');
+            
+            if (!dropdown.contains(event.target) && !dropdownMenu.classList.contains('hidden')) {
+                dropdownMenu.classList.add('hidden');
+            }
+        });
+        
+        // CSRF Token for AJAX requests
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        
+        const csrftoken = getCookie('csrftoken');
+        
+        // Set up AJAX with CSRF token
+        $.ajaxSetup({
+            beforeSend: function(xhr, settings) {
+                if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !this.crossDomain) {
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                }
+                
+                // Add JWT token to requests if available
+                const token = localStorage.getItem('access_token');
+                if (token) {
+                    xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+                }
+            }
+        });
+        
+        // Check if user is authenticated
+        $(document).ready(function() {
+            const token = localStorage.getItem('access_token');
+            // If we're on a page that requires authentication and no token is present
+            if (!token && window.location.pathname !== '/login/' && window.location.pathname !== '/register/' && window.location.pathname !== '/password-reset/') {
+                // Redirect to login
+                window.location.href = '/login/';
+            }
+        });
+        
+        // Function to follow or unfollow a user
+        function toggleFollow(userId, button) {
+            const isFollowing = $(button).hasClass('following');
+            
+            if (isFollowing) {
+                // Unfollow
+                $.ajax({
+                    url: `/api/social/follows/${userId}/`,
+                    type: 'DELETE',
+                    success: function() {
+                        $(button).removeClass('following bg-gray-200')
+                                .addClass('bg-primary text-white')
+                                .html('<i class="fas fa-user-plus mr-1"></i> Follow');
+                        
+                        // Update followers count if shown on page
+                        const countElement = $(`.follower-count[data-user-id="${userId}"]`);
+                        if (countElement.length) {
+                            let count = parseInt(countElement.text()) - 1;
+                            countElement.text(count);
+                        }
+                    },
+                    error: function(xhr) {
+                        console.error('Error unfollowing user:', xhr.responseText);
+                        alert('Failed to unfollow user. Please try again.');
+                    }
+                });
+            } else {
+                // Follow
+                $.ajax({
+                    url: '/api/social/follows/',
+                    type: 'POST',
+                    data: {
+                        following_id: userId
+                    },
+                    success: function() {
+                        $(button).addClass('following bg-gray-200')
+                                .removeClass('bg-primary text-white')
+                                .html('<i class="fas fa-user-check mr-1"></i> Following');
+                        
+                        // Update followers count if shown on page
+                        const countElement = $(`.follower-count[data-user-id="${userId}"]`);
+                        if (countElement.length) {
+                            let count = parseInt(countElement.text()) + 1;
+                            countElement.text(count);
+                        }
+                    },
+                    error: function(xhr) {
+                        console.error('Error following user:', xhr.responseText);
+                        alert('Failed to follow user. Please try again.');
+                    }
+                });
+            }
+        }
+        
+        // Function to like or unlike a post
+        function toggleLike(contentTypeStr, objectId, button) {
+            const isLiked = $(button).hasClass('liked');
+            
+            if (isLiked) {
+                // Unlike
+                $.ajax({
+                    url: `/api/social/likes/${contentTypeStr}/${objectId}/`,
+                    type: 'DELETE',
+                    success: function() {
+                        $(button).removeClass('liked text-red-500')
+                                .addClass('text-gray-500');
+                        
+                        // Update like count
+                        const countElement = $(button).siblings('.like-count');
+                        if (countElement.length) {
+                            let count = parseInt(countElement.text()) - 1;
+                            countElement.text(count);
+                        }
+                    },
+                    error: function(xhr) {
+                        console.error('Error unliking:', xhr.responseText);
+                        alert('Failed to unlike. Please try again.');
+                    }
+                });
+            } else {
+                // Like
+                $.ajax({
+                    url: '/api/social/likes/',
+                    type: 'POST',
+                    data: {
+                        content_type_str: contentTypeStr,
+                        object_id: objectId,
+                        like_type: 'like'
+                    },
+                    success: function() {
+                        $(button).addClass('liked text-red-500')
+                                .removeClass('text-gray-500');
+                        
+                        // Update like count
+                        const countElement = $(button).siblings('.like-count');
+                        if (countElement.length) {
+                            let count = parseInt(countElement.text()) + 1;
+                            countElement.text(count);
+                        }
+                    },
+                    error: function(xhr) {
+                        console.error('Error liking:', xhr.responseText);
+                        alert('Failed to like. Please try again.');
+                    }
+                });
+            }
+        }
+        
+        // Function to add a comment
+        function addComment(postId, commentInput) {
+            const content = $(commentInput).val().trim();
+            
+            if (!content) {
+                return;
+            }
+            
+            $.ajax({
+                url: '/api/social/comments/',
+                type: 'POST',
+                data: {
+                    post: postId,
+                    description: content
+                },
+                success: function(response) {
+                    // Clear the input
+                    $(commentInput).val('');
+                    
+                    // Refresh comments or add the new comment to the list
+                    if (window.location.pathname.includes('/posts/')) {
+                        // If on post detail page, reload comments section
+                        location.reload();
+                    } else {
+                        // Otherwise, just clear the input
+                        alert('Comment added successfully!');
+                    }
+                },
+                error: function(xhr) {
+                    console.error('Error adding comment:', xhr.responseText);
+                    alert('Failed to add comment. Please try again.');
+                }
+            });
+        }
+        
+        // Function to share a post
+        function sharePost() {
+            if (navigator.share) {
+                navigator.share({
+                    title: document.title,
+                    url: window.location.href
+                })
+                .then(() => console.log('Successful share'))
+                .catch((error) => console.log('Error sharing:', error));
+            } else {
+                // Fallback for browsers that don't support the Web Share API
+                const dummy = document.createElement('input');
+                document.body.appendChild(dummy);
+                dummy.value = window.location.href;
+                dummy.select();
+                document.execCommand('copy');
+                document.body.removeChild(dummy);
+                
+                alert('Link copied to clipboard!');
+            }
+        }
+    </script>
+    
+    
+<script>
+    $(document).ready(function() {
+        $('#login-form').submit(function(e) {
+            e.preventDefault();
+            
+            const username = $('#username').val();
+            const password = $('#password').val();
+            const remember = $('#remember').is(':checked');
+            
+            $.ajax({
+                url: '/api/accounts/login/',
+                type: 'POST',
+                data: {
+                    username: username,
+                    password: password,
+                    remember: remember,
+                    csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val()
+                },
+                success: function(response) {
+                    // Store the JWT token in localStorage for future API calls
+                    localStorage.setItem('access_token', response.access);
+                    localStorage.setItem('refresh_token', response.refresh);
+                    window.location.href = '/';
+                },
+                error: function(xhr) {
+                    let errorMessage = 'Login failed. Please check your credentials and try again.';
+                    if (xhr.responseJSON && xhr.responseJSON.error) {
+                        errorMessage = xhr.responseJSON.error;
+                    }
+                    alert(errorMessage);
+                }
+            });
+        });
+    });
+</script>
+
+
+
+<link rel="stylesheet" href="/static/debug_toolbar/css/print.css" media="print">
+<link rel="stylesheet" href="/static/debug_toolbar/css/toolbar.css">
+
+
+<script type="module" src="/static/debug_toolbar/js/toolbar.js" async></script>
+
+<div id="djDebug" class="djdt-hidden" dir="ltr"
+     
+     data-store-id="2c513c6d14b640909e9fbc33c534b4fc"
+     data-render-panel-url="/__debug__/render_panel/"
+     
+     
+     
+     data-sidebar-url="/__debug__/history_sidebar/"
+     
+     data-default-show="true"
+     >
+  <div class="djdt-hidden" id="djDebugToolbar">
+    <ul id="djDebugPanelList">
+      <li><a id="djHideToolBarButton" href="#" title="Hide toolbar">Hide »</a></li>
+      
+        
+
+<li id="djdt-HistoryPanel" class="djDebugPanelButton">
+  <input type="checkbox" data-cookie="djdtHistoryPanel" checked title="Disable for next and successive requests">
+  
+    <a href="#" title="History" class="HistoryPanel">
+  
+  History
+  
+    
+      <br><small>/login/</small>
+    
+  
+  
+    </a>
+  
+</li>
+
+      
+        
+
+<li id="djdt-VersionsPanel" class="djDebugPanelButton">
+  <input type="checkbox" data-cookie="djdtVersionsPanel" checked title="Disable for next and successive requests">
+  
+    <a href="#" title="Versions" class="VersionsPanel">
+  
+  Versions
+  
+    
+      <br><small>Django 4.2</small>
+    
+  
+  
+    </a>
+  
+</li>
+
+      
+        
+
+<li id="djdt-TimerPanel" class="djDebugPanelButton">
+  <input type="checkbox" data-cookie="djdtTimerPanel" checked title="Disable for next and successive requests">
+  
+    <div class="djdt-contentless">
+  
+  Time
+  
+    
+      <br><small>Total: 8.85ms</small>
+    
+  
+  
+    </div>
+  
+</li>
+
+      
+        
+
+<li id="djdt-SettingsPanel" class="djDebugPanelButton">
+  <input type="checkbox" data-cookie="djdtSettingsPanel" checked title="Disable for next and successive requests">
+  
+    <a href="#" title="Settings from src.settings" class="SettingsPanel">
+  
+  Settings
+  
+    
+      
+    
+  
+  
+    </a>
+  
+</li>
+
+      
+        
+
+<li id="djdt-HeadersPanel" class="djDebugPanelButton">
+  <input type="checkbox" data-cookie="djdtHeadersPanel" checked title="Disable for next and successive requests">
+  
+    <a href="#" title="Headers" class="HeadersPanel">
+  
+  Headers
+  
+    
+      
+    
+  
+  
+    </a>
+  
+</li>
+
+      
+        
+
+<li id="djdt-RequestPanel" class="djDebugPanelButton">
+  <input type="checkbox" data-cookie="djdtRequestPanel" checked title="Disable for next and successive requests">
+  
+    <a href="#" title="Request" class="RequestPanel">
+  
+  Request
+  
+    
+      <br><small>view</small>
+    
+  
+  
+    </a>
+  
+</li>
+
+      
+        
+
+<li id="djdt-SQLPanel" class="djDebugPanelButton">
+  <input type="checkbox" data-cookie="djdtSQLPanel" checked title="Disable for next and successive requests">
+  
+    <a href="#" title="SQL queries from 0 connections" class="SQLPanel">
+  
+  SQL
+  
+    
+      <br><small>0 queries in 0.00ms</small>
+    
+  
+  
+    </a>
+  
+</li>
+
+      
+        
+
+<li id="djdt-StaticFilesPanel" class="djDebugPanelButton">
+  <input type="checkbox" data-cookie="djdtStaticFilesPanel" checked title="Disable for next and successive requests">
+  
+    <a href="#" title="Static files (237 found, 0 used)" class="StaticFilesPanel">
+  
+  Static files
+  
+    
+      <br><small>0 files used</small>
+    
+  
+  
+    </a>
+  
+</li>
+
+      
+        
+
+<li id="djdt-TemplatesPanel" class="djDebugPanelButton">
+  <input type="checkbox" data-cookie="djdtTemplatesPanel" checked title="Disable for next and successive requests">
+  
+    <a href="#" title="Templates (2 rendered)" class="TemplatesPanel">
+  
+  Templates
+  
+    
+      <br><small>accounts/login.html</small>
+    
+  
+  
+    </a>
+  
+</li>
+
+      
+        
+
+<li id="djdt-CachePanel" class="djDebugPanelButton">
+  <input type="checkbox" data-cookie="djdtCachePanel" checked title="Disable for next and successive requests">
+  
+    <a href="#" title="Cache calls from 1 backend" class="CachePanel">
+  
+  Cache
+  
+    
+      <br><small>0 calls in 0.00ms</small>
+    
+  
+  
+    </a>
+  
+</li>
+
+      
+        
+
+<li id="djdt-SignalsPanel" class="djDebugPanelButton">
+  <input type="checkbox" data-cookie="djdtSignalsPanel" checked title="Disable for next and successive requests">
+  
+    <a href="#" title="Signals" class="SignalsPanel">
+  
+  Signals
+  
+    
+      <br><small>42 receivers of 15 signals</small>
+    
+  
+  
+    </a>
+  
+</li>
+
+      
+        
+
+<li id="djdt-RedirectsPanel" class="djDebugPanelButton">
+  <input type="checkbox" data-cookie="djdtRedirectsPanel" title="Enable for next and successive requests">
+  
+    <div class="djdt-contentless djdt-disabled">
+  
+  Intercept redirects
+  
+  
+    </div>
+  
+</li>
+
+      
+        
+
+<li id="djdt-ProfilingPanel" class="djDebugPanelButton">
+  <input type="checkbox" data-cookie="djdtProfilingPanel" title="Enable for next and successive requests">
+  
+    <div class="djdt-contentless djdt-disabled">
+  
+  Profiling
+  
+  
+    </div>
+  
+</li>
+
+      
+    </ul>
+  </div>
+  <div class="djdt-hidden" id="djDebugToolbarHandle">
+    <div title="Show toolbar" id="djShowToolBarButton">
+      <span id="djShowToolBarD">D</span><span id="djShowToolBarJ">J</span>DT
+    </div>
+  </div>
+
+  
+    
+
+
+  <div id="HistoryPanel" class="djdt-panelContent djdt-hidden">
+    <div class="djDebugPanelTitle">
+      <button type="button" class="djDebugClose">×</button>
+      <h3>History</h3>
+    </div>
+    <div class="djDebugPanelContent">
+      
+        <div class="djdt-loader"></div>
+        <div class="djdt-scroll"></div>
+      
+    </div>
+  </div>
+
+
+  
+    
+
+
+  <div id="VersionsPanel" class="djdt-panelContent djdt-hidden">
+    <div class="djDebugPanelTitle">
+      <button type="button" class="djDebugClose">×</button>
+      <h3>Versions</h3>
+    </div>
+    <div class="djDebugPanelContent">
+      
+        <div class="djdt-loader"></div>
+        <div class="djdt-scroll"></div>
+      
+    </div>
+  </div>
+
+
+  
+    
+
+
+
+  
+    
+
+
+  <div id="SettingsPanel" class="djdt-panelContent djdt-hidden">
+    <div class="djDebugPanelTitle">
+      <button type="button" class="djDebugClose">×</button>
+      <h3>Settings from src.settings</h3>
+    </div>
+    <div class="djDebugPanelContent">
+      
+        <div class="djdt-loader"></div>
+        <div class="djdt-scroll"></div>
+      
+    </div>
+  </div>
+
+
+  
+    
+
+
+  <div id="HeadersPanel" class="djdt-panelContent djdt-hidden">
+    <div class="djDebugPanelTitle">
+      <button type="button" class="djDebugClose">×</button>
+      <h3>Headers</h3>
+    </div>
+    <div class="djDebugPanelContent">
+      
+        <div class="djdt-loader"></div>
+        <div class="djdt-scroll"></div>
+      
+    </div>
+  </div>
+
+
+  
+    
+
+
+  <div id="RequestPanel" class="djdt-panelContent djdt-hidden">
+    <div class="djDebugPanelTitle">
+      <button type="button" class="djDebugClose">×</button>
+      <h3>Request</h3>
+    </div>
+    <div class="djDebugPanelContent">
+      
+        <div class="djdt-loader"></div>
+        <div class="djdt-scroll"></div>
+      
+    </div>
+  </div>
+
+
+  
+    
+
+
+  <div id="SQLPanel" class="djdt-panelContent djdt-hidden">
+    <div class="djDebugPanelTitle">
+      <button type="button" class="djDebugClose">×</button>
+      <h3>SQL queries from 0 connections</h3>
+    </div>
+    <div class="djDebugPanelContent">
+      
+        <div class="djdt-loader"></div>
+        <div class="djdt-scroll"></div>
+      
+    </div>
+  </div>
+
+
+  
+    
+
+
+  <div id="StaticFilesPanel" class="djdt-panelContent djdt-hidden">
+    <div class="djDebugPanelTitle">
+      <button type="button" class="djDebugClose">×</button>
+      <h3>Static files (237 found, 0 used)</h3>
+    </div>
+    <div class="djDebugPanelContent">
+      
+        <div class="djdt-loader"></div>
+        <div class="djdt-scroll"></div>
+      
+    </div>
+  </div>
+
+
+  
+    
+
+
+  <div id="TemplatesPanel" class="djdt-panelContent djdt-hidden">
+    <div class="djDebugPanelTitle">
+      <button type="button" class="djDebugClose">×</button>
+      <h3>Templates (2 rendered)</h3>
+    </div>
+    <div class="djDebugPanelContent">
+      
+        <div class="djdt-loader"></div>
+        <div class="djdt-scroll"></div>
+      
+    </div>
+  </div>
+
+
+  
+    
+
+
+  <div id="CachePanel" class="djdt-panelContent djdt-hidden">
+    <div class="djDebugPanelTitle">
+      <button type="button" class="djDebugClose">×</button>
+      <h3>Cache calls from 1 backend</h3>
+    </div>
+    <div class="djDebugPanelContent">
+      
+        <div class="djdt-loader"></div>
+        <div class="djdt-scroll"></div>
+      
+    </div>
+  </div>
+
+
+  
+    
+
+
+  <div id="SignalsPanel" class="djdt-panelContent djdt-hidden">
+    <div class="djDebugPanelTitle">
+      <button type="button" class="djDebugClose">×</button>
+      <h3>Signals</h3>
+    </div>
+    <div class="djDebugPanelContent">
+      
+        <div class="djdt-loader"></div>
+        <div class="djdt-scroll"></div>
+      
+    </div>
+  </div>
+
+
+  
+    
+
+
+
+  
+    
+
+
+
+  
+  <div id="djDebugWindow" class="djdt-panelContent djdt-hidden"></div>
+</div>
+</body>
+</html> 

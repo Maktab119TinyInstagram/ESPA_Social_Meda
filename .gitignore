@@ -170,3 +170,7 @@ celerybeat-schedule
 Thumbs.db
 ehthumbs.db
 Desktop.ini
+
+# Ignore Django migrations
+**/migrations/
+**/migrations/**

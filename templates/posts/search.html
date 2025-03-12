@@ -1,148 +1,163 @@
 {% extends 'base/base.html' %}
 
-{% block title %}Search Results | ESPA Social Network{% endblock %}
+{% block title %}Search | ESPA Social Network{% endblock %}
 
 {% block content %}
-<div class="max-w-5xl mx-auto">
-    <h1 class="text-2xl font-bold mb-6">Search Results for "{{ query }}"</h1>
-    
-    {% if not posts and not users and not hashtags %}
-        <div class="bg-white p-8 rounded-lg shadow-md text-center">
-            <h2 class="text-xl font-bold mb-4">No results found</h2>
-            <p class="mb-4">We couldn't find any matches for "{{ query }}".</p>
-            <p class="text-gray-600">Try different keywords or check your spelling.</p>
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-4xl mx-auto">
+        <!-- Search Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold mb-2 text-secondary">Search Results</h1>
+            <p class="text-gray-600">Showing results for "{{ query }}"</p>
         </div>
-    {% else %}
-        <!-- Search Tabs -->
-        <div class="mb-6 border-b">
-            <div class="flex">
-                <button class="search-tab py-2 px-4 font-bold border-b-2 border-blue-600 text-blue-600" data-tab="all">
-                    All
-                </button>
-                <button class="search-tab py-2 px-4 font-medium text-gray-600" data-tab="posts">
-                    Posts ({{ posts|length }})
-                </button>
-                <button class="search-tab py-2 px-4 font-medium text-gray-600" data-tab="users">
-                    People ({{ users|length }})
-                </button>
-                <button class="search-tab py-2 px-4 font-medium text-gray-600" data-tab="hashtags">
-                    Hashtags ({{ hashtags|length }})
-                </button>
+        
+        <!-- Search Filters -->
+        <div class="mb-8">
+            <div class="flex border-b">
+                <button class="search-filter px-4 py-2 font-medium border-b-2 border-primary text-primary" data-filter="all">All</button>
+                <button class="search-filter px-4 py-2 font-medium border-b-2 border-transparent hover:text-primary" data-filter="posts">Posts</button>
+                <button class="search-filter px-4 py-2 font-medium border-b-2 border-transparent hover:text-primary" data-filter="users">Users</button>
+                <button class="search-filter px-4 py-2 font-medium border-b-2 border-transparent hover:text-primary" data-filter="hashtags">Hashtags</button>
             </div>
         </div>
         
-        <!-- All Results Section -->
-        <div class="search-content" id="all-content">
+        <!-- Search Results -->
+        <div class="search-results">
             <!-- Users Section -->
-            {% if users %}
-                <div class="mb-8">
-                    <h2 class="text-xl font-bold mb-4">People</h2>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                        {% for user_profile in users|slice:":3" %}
-                            <div class="bg-white p-4 rounded-lg shadow-md">
-                                <div class="flex items-center">
-                                    {% if user_profile.profile_picture %}
-                                        <img src="{{ user_profile.profile_picture.url }}" alt="{{ user_profile.username }}" class="w-12 h-12 rounded-full mr-3">
+            <div class="search-section mb-8" id="users-section">
+                <h2 class="text-xl font-bold mb-4 text-secondary">Users</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {% for user in users %}
+                        <div class="bg-white rounded-lg shadow-md p-4 flex items-center">
+                            {% if user.profile_picture %}
+                                <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}" class="w-16 h-16 rounded-full mr-4">
+                            {% else %}
+                                <div class="w-16 h-16 rounded-full bg-primary flex items-center justify-center mr-4">
+                                    <span class="text-light text-xl font-bold">{{ user.username.0|upper }}</span>
+                                </div>
+                            {% endif %}
+                            
+                            <div class="flex-grow">
+                                <h3 class="font-bold text-lg text-secondary">{{ user.get_full_name }}</h3>
+                                <p class="text-gray-600">@{{ user.username }}</p>
+                                <p class="text-gray-500 text-sm">{{ user.followers.count }} followers</p>
+                            </div>
+                            
+                            <div>
+                                {% if user != request.user %}
+                                    {% if user in request.user.following.all %}
+                                        <button class="follow-button bg-light text-primary px-4 py-2 rounded-lg border border-primary hover:bg-primary hover:text-white transition duration-200" data-user-id="{{ user.id }}" data-following="true">
+                                            Following
+                                        </button>
                                     {% else %}
-                                        <div class="w-12 h-12 rounded-full bg-gray-300 flex items-center justify-center mr-3">
-                                            <span class="text-gray-600 text-lg font-bold">{{ user_profile.username.0|upper }}</span>
-                                        </div>
+                                        <button class="follow-button bg-primary text-white px-4 py-2 rounded-lg hover:bg-opacity-90 transition duration-200" data-user-id="{{ user.id }}" data-following="false">
+                                            Follow
+                                        </button>
                                     {% endif %}
-                                    <div>
-                                        <h3 class="font-bold">{{ user_profile.get_full_name }}</h3>
-                                        <p class="text-gray-600">@{{ user_profile.username }}</p>
-                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="col-span-2 text-center py-8">
+                            <p class="text-gray-600">No users found matching "{{ query }}"</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <!-- Hashtags Section -->
+            <div class="search-section mb-8" id="hashtags-section">
+                <h2 class="text-xl font-bold mb-4 text-secondary">Hashtags</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {% for hashtag in hashtags %}
+                        <div class="bg-white rounded-lg shadow-md p-4">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <a href="{% url 'posts:hashtag-posts' hashtag.title %}" class="text-xl font-bold text-primary hover:underline">#{{ hashtag.title }}</a>
+                                    <p class="text-gray-600">{{ hashtag.posts.count }} posts</p>
                                 </div>
                                 
-                                <div class="mt-4">
-                                    {% if user_profile != request.user %}
-                                        {% if user_profile in request.user.following.all %}
-                                            <button class="unfollow-button w-full py-2 px-4 border border-gray-300 rounded-lg hover:bg-gray-100 transition duration-200" data-user-id="{{ user_profile.id }}">
-                                                <i class="fas fa-user-check mr-2"></i> Following
-                                            </button>
-                                        {% else %}
-                                            <button class="follow-button w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-200" data-user-id="{{ user_profile.id }}">
-                                                <i class="fas fa-user-plus mr-2"></i> Follow
-                                            </button>
-                                        {% endif %}
+                                <div>
+                                    {% if hashtag in request.user.followed_hashtags.all %}
+                                        <button class="follow-hashtag-button bg-light text-primary px-4 py-2 rounded-lg border border-primary hover:bg-primary hover:text-white transition duration-200" data-hashtag-id="{{ hashtag.id }}" data-following="true">
+                                            Following
+                                        </button>
+                                    {% else %}
+                                        <button class="follow-hashtag-button bg-primary text-white px-4 py-2 rounded-lg hover:bg-opacity-90 transition duration-200" data-hashtag-id="{{ hashtag.id }}" data-following="false">
+                                            Follow
+                                        </button>
                                     {% endif %}
                                 </div>
                             </div>
-                        {% endfor %}
-                    </div>
-                    
-                    {% if users|length > 3 %}
-                        <div class="mt-4 text-center">
-                            <button class="view-more-users py-2 px-4 text-blue-600 hover:underline">
-                                View all {{ users|length }} people
-                            </button>
                         </div>
-                    {% endif %}
-                </div>
-            {% endif %}
-            
-            <!-- Hashtags Section -->
-            {% if hashtags %}
-                <div class="mb-8">
-                    <h2 class="text-xl font-bold mb-4">Hashtags</h2>
-                    <div class="bg-white p-4 rounded-lg shadow-md">
-                        <div class="flex flex-wrap">
-                            {% for hashtag in hashtags %}
-                                <a href="{% url 'posts:hashtag-posts' hashtag.title %}" class="inline-block bg-gray-100 hover:bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2 mb-2">
-                                    #{{ hashtag.title }} ({{ hashtag.post_count }})
-                                </a>
-                            {% endfor %}
+                    {% empty %}
+                        <div class="col-span-2 text-center py-8">
+                            <p class="text-gray-600">No hashtags found matching "{{ query }}"</p>
                         </div>
-                    </div>
+                    {% endfor %}
                 </div>
-            {% endif %}
+            </div>
             
             <!-- Posts Section -->
-            {% if posts %}
-                <div>
-                    <h2 class="text-xl font-bold mb-4">Posts</h2>
-                    <div class="grid grid-cols-1 gap-6">
-                        {% for post in posts|slice:":5" %}
-                            <div class="bg-white p-4 rounded-lg shadow-md post-card" data-post-id="{{ post.id }}">
-                                <!-- Post Header -->
-                                <div class="flex items-center mb-4">
+            <div class="search-section" id="posts-section">
+                <h2 class="text-xl font-bold mb-4 text-secondary">Posts</h2>
+                
+                <div class="space-y-6">
+                    {% for post in posts %}
+                        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                            <!-- Post Header -->
+                            <div class="p-4 border-b">
+                                <div class="flex items-center">
                                     {% if post.user.profile_picture %}
                                         <img src="{{ post.user.profile_picture.url }}" alt="{{ post.user.username }}" class="w-10 h-10 rounded-full mr-3">
                                     {% else %}
-                                        <div class="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center mr-3">
-                                            <span class="text-gray-600 text-lg font-bold">{{ post.user.username.0|upper }}</span>
+                                        <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center mr-3">
+                                            <span class="text-light text-lg font-bold">{{ post.user.username.0|upper }}</span>
                                         </div>
                                     {% endif %}
                                     <div>
-                                        <h3 class="font-bold">{{ post.user.get_full_name }}</h3>
+                                        <h3 class="font-bold text-secondary">{{ post.user.get_full_name }}</h3>
                                         <p class="text-gray-600 text-sm">
                                             @{{ post.user.username }}
                                             {% if post.location %}
                                                 • {{ post.location }}
                                             {% endif %}
+                                            • {{ post.created_at|date:"F j, Y" }}
                                         </p>
                                     </div>
                                 </div>
-                                
-                                <!-- Post Content -->
+                            </div>
+                            
+                            <!-- Post Content -->
+                            <div class="p-4">
                                 {% if post.description %}
                                     <p class="mb-4">{{ post.description }}</p>
                                 {% endif %}
                                 
                                 <!-- Post Media -->
                                 {% if post.media.exists %}
-                                    <div class="mb-4 post-media">
+                                    <div class="mb-4">
                                         {% for media in post.media.all|slice:":1" %}
-                                            {% if media.file_type == 'image' %}
-                                                <img src="{{ media.file.url }}" alt="{{ media.caption|default:'Post image' }}" class="w-full h-auto rounded-lg mb-2">
-                                            {% else %}
-                                                <video src="{{ media.file.url }}" controls class="w-full h-auto rounded-lg mb-2"></video>
-                                            {% endif %}
+                                            <div class="relative">
+                                                {% if media.file_type == 'image' %}
+                                                    <a href="{% url 'posts:post-detail' post.id %}">
+                                                        <img src="{{ media.file.url }}" alt="{{ media.caption|default:'Post image' }}" class="w-full h-auto rounded-lg">
+                                                    </a>
+                                                {% else %}
+                                                    <a href="{% url 'posts:post-detail' post.id %}">
+                                                        <video src="{{ media.file.url }}" class="w-full h-auto rounded-lg" controls></video>
+                                                    </a>
+                                                {% endif %}
+                                                
+                                                {% if post.media.count > 1 %}
+                                                    <div class="absolute top-2 right-2 bg-black bg-opacity-70 text-white px-2 py-1 rounded-lg text-sm">
+                                                        +{{ post.media.count|add:"-1" }} more
+                                                    </div>
+                                                {% endif %}
+                                            </div>
                                         {% endfor %}
-                                        
-                                        {% if post.media.count > 1 %}
-                                            <p class="text-gray-600 text-sm">+{{ post.media.count|add:"-1" }} more</p>
-                                        {% endif %}
                                     </div>
                                 {% endif %}
                                 
@@ -150,246 +165,168 @@
                                 {% if post.hashtags.exists %}
                                     <div class="mb-4">
                                         {% for hashtag in post.hashtags.all %}
-                                            <a href="{% url 'posts:hashtag-posts' hashtag.title %}" class="text-blue-600 hover:underline mr-2">#{{ hashtag.title }}</a>
+                                            <a href="{% url 'posts:hashtag-posts' hashtag.title %}" class="text-primary hover:underline mr-2">#{{ hashtag.title }}</a>
                                         {% endfor %}
                                     </div>
                                 {% endif %}
                                 
                                 <!-- Post Stats -->
-                                <div class="flex justify-between mb-4 text-gray-600 text-sm">
+                                <div class="flex justify-between text-gray-600 text-sm mb-2">
                                     <span>{{ post.get_likes_count }} likes</span>
                                     <span>{{ post.get_comments_count }} comments</span>
                                 </div>
                                 
-                                <!-- View Post Link -->
-                                <a href="{% url 'posts:post-detail' post.id %}" class="block text-center py-2 px-4 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition duration-200">
-                                    View Post
-                                </a>
-                            </div>
-                        {% endfor %}
-                    </div>
-                    
-                    {% if posts|length > 5 %}
-                        <div class="mt-4 text-center">
-                            <button class="view-more-posts py-2 px-4 text-blue-600 hover:underline">
-                                View all {{ posts|length }} posts
-                            </button>
-                        </div>
-                    {% endif %}
-                </div>
-            {% endif %}
-        </div>
-        
-        <!-- Posts Results Section -->
-        <div class="search-content hidden" id="posts-content">
-            <div class="grid grid-cols-1 gap-6">
-                {% for post in posts %}
-                    <div class="bg-white p-4 rounded-lg shadow-md post-card" data-post-id="{{ post.id }}">
-                        <!-- Post Header -->
-                        <div class="flex items-center mb-4">
-                            {% if post.user.profile_picture %}
-                                <img src="{{ post.user.profile_picture.url }}" alt="{{ post.user.username }}" class="w-10 h-10 rounded-full mr-3">
-                            {% else %}
-                                <div class="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center mr-3">
-                                    <span class="text-gray-600 text-lg font-bold">{{ post.user.username.0|upper }}</span>
+                                <!-- Post Actions -->
+                                <div class="flex justify-between border-t border-b py-2 mb-4">
+                                    <button class="like-button flex items-center {% if post.is_liked %}text-primary{% endif %}" data-post-id="{{ post.id }}">
+                                        <i class="fas fa-heart mr-2"></i> Like
+                                    </button>
+                                    <a href="{% url 'posts:post-detail' post.id %}" class="flex items-center">
+                                        <i class="fas fa-comment mr-2"></i> Comment
+                                    </a>
+                                    <button class="share-button flex items-center" data-post-id="{{ post.id }}">
+                                        <i class="fas fa-share mr-2"></i> Share
+                                    </button>
                                 </div>
-                            {% endif %}
-                            <div>
-                                <h3 class="font-bold">{{ post.user.get_full_name }}</h3>
-                                <p class="text-gray-600 text-sm">
-                                    @{{ post.user.username }}
-                                    {% if post.location %}
-                                        • {{ post.location }}
-                                    {% endif %}
-                                </p>
-                            </div>
-                        </div>
-                        
-                        <!-- Post Content -->
-                        {% if post.description %}
-                            <p class="mb-4">{{ post.description }}</p>
-                        {% endif %}
-                        
-                        <!-- Post Media -->
-                        {% if post.media.exists %}
-                            <div class="mb-4 post-media">
-                                {% for media in post.media.all|slice:":1" %}
-                                    {% if media.file_type == 'image' %}
-                                        <img src="{{ media.file.url }}" alt="{{ media.caption|default:'Post image' }}" class="w-full h-auto rounded-lg mb-2">
-                                    {% else %}
-                                        <video src="{{ media.file.url }}" controls class="w-full h-auto rounded-lg mb-2"></video>
-                                    {% endif %}
-                                {% endfor %}
                                 
-                                {% if post.media.count > 1 %}
-                                    <p class="text-gray-600 text-sm">+{{ post.media.count|add:"-1" }} more</p>
-                                {% endif %}
-                            </div>
-                        {% endif %}
-                        
-                        <!-- Post Hashtags -->
-                        {% if post.hashtags.exists %}
-                            <div class="mb-4">
-                                {% for hashtag in post.hashtags.all %}
-                                    <a href="{% url 'posts:hashtag-posts' hashtag.title %}" class="text-blue-600 hover:underline mr-2">#{{ hashtag.title }}</a>
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                        
-                        <!-- Post Stats -->
-                        <div class="flex justify-between mb-4 text-gray-600 text-sm">
-                            <span>{{ post.get_likes_count }} likes</span>
-                            <span>{{ post.get_comments_count }} comments</span>
-                        </div>
-                        
-                        <!-- View Post Link -->
-                        <a href="{% url 'posts:post-detail' post.id %}" class="block text-center py-2 px-4 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition duration-200">
-                            View Post
-                        </a>
-                    </div>
-                {% empty %}
-                    <div class="bg-white p-8 rounded-lg shadow-md text-center">
-                        <p class="text-gray-600">No posts found matching "{{ query }}"</p>
-                    </div>
-                {% endfor %}
-            </div>
-        </div>
-        
-        <!-- Users Results Section -->
-        <div class="search-content hidden" id="users-content">
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                {% for user_profile in users %}
-                    <div class="bg-white p-4 rounded-lg shadow-md">
-                        <div class="flex items-center">
-                            {% if user_profile.profile_picture %}
-                                <img src="{{ user_profile.profile_picture.url }}" alt="{{ user_profile.username }}" class="w-16 h-16 rounded-full mr-4">
-                            {% else %}
-                                <div class="w-16 h-16 rounded-full bg-gray-300 flex items-center justify-center mr-4">
-                                    <span class="text-gray-600 text-xl font-bold">{{ user_profile.username.0|upper }}</span>
+                                <!-- View Post Link -->
+                                <div class="text-center">
+                                    <a href="{% url 'posts:post-detail' post.id %}" class="text-primary hover:underline">View Post</a>
                                 </div>
-                            {% endif %}
-                            <div>
-                                <h3 class="font-bold text-lg">{{ user_profile.get_full_name }}</h3>
-                                <p class="text-gray-600">@{{ user_profile.username }}</p>
-                                <p class="text-sm text-gray-500 mt-1">{{ user_profile.followers.count }} followers</p>
                             </div>
                         </div>
-                        
-                        <div class="mt-4">
-                            {% if user_profile != request.user %}
-                                {% if user_profile in request.user.following.all %}
-                                    <button class="unfollow-button w-full py-2 px-4 border border-gray-300 rounded-lg hover:bg-gray-100 transition duration-200" data-user-id="{{ user_profile.id }}">
-                                        <i class="fas fa-user-check mr-2"></i> Following
-                                    </button>
-                                {% else %}
-                                    <button class="follow-button w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-200" data-user-id="{{ user_profile.id }}">
-                                        <i class="fas fa-user-plus mr-2"></i> Follow
-                                    </button>
-                                {% endif %}
-                            {% endif %}
-                        </div>
-                    </div>
-                {% empty %}
-                    <div class="col-span-3 bg-white p-8 rounded-lg shadow-md text-center">
-                        <p class="text-gray-600">No users found matching "{{ query }}"</p>
-                    </div>
-                {% endfor %}
-            </div>
-        </div>
-        
-        <!-- Hashtags Results Section -->
-        <div class="search-content hidden" id="hashtags-content">
-            <div class="bg-white p-6 rounded-lg shadow-md">
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                    {% for hashtag in hashtags %}
-                        <a href="{% url 'posts:hashtag-posts' hashtag.title %}" class="block bg-gray-100 hover:bg-gray-200 rounded-lg p-4 transition duration-200">
-                            <h3 class="font-bold text-lg mb-1">#{{ hashtag.title }}</h3>
-                            <p class="text-gray-600">{{ hashtag.post_count }} posts</p>
-                        </a>
                     {% empty %}
-                        <div class="col-span-3 text-center py-4">
-                            <p class="text-gray-600">No hashtags found matching "{{ query }}"</p>
+                        <div class="text-center py-8">
+                            <p class="text-gray-600">No posts found matching "{{ query }}"</p>
                         </div>
                     {% endfor %}
                 </div>
             </div>
         </div>
-    {% endif %}
+    </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
     $(document).ready(function() {
-        // Tab switching
-        $('.search-tab').click(function() {
-            // Update active tab
-            $('.search-tab').removeClass('border-blue-600 text-blue-600 font-bold').addClass('text-gray-600 font-medium');
-            $(this).addClass('border-blue-600 text-blue-600 font-bold').removeClass('text-gray-600 font-medium');
+        // Filter functionality
+        $('.search-filter').click(function() {
+            const filter = $(this).data('filter');
             
-            // Show corresponding content
-            const tabId = $(this).data('tab');
-            $('.search-content').addClass('hidden');
-            $(`#${tabId}-content`).removeClass('hidden');
+            // Update active filter button
+            $('.search-filter').removeClass('border-primary text-primary').addClass('border-transparent');
+            $(this).addClass('border-primary text-primary').removeClass('border-transparent');
+            
+            if (filter === 'all') {
+                $('.search-section').show();
+            } else {
+                $('.search-section').hide();
+                $(`#${filter}-section`).show();
+            }
         });
         
-        // View more buttons
-        $('.view-more-users').click(function() {
-            $('.search-tab[data-tab="users"]').click();
-        });
-        
-        $('.view-more-posts').click(function() {
-            $('.search-tab[data-tab="posts"]').click();
-        });
-        
-        // Follow button click
+        // Follow/Unfollow User
         $('.follow-button').click(function() {
-            const userId = $(this).data('user-id');
             const button = $(this);
+            const userId = button.data('user-id');
+            const isFollowing = button.data('following');
             
             $.ajax({
-                url: '{% url "social_interactions:follow-create" %}',
+                url: `/api/users/${userId}/follow/`,
                 type: 'POST',
-                data: {
-                    following: userId
-                },
                 headers: {
-                    'Authorization': 'Bearer ' + localStorage.getItem('access_token')
+                    'X-CSRFToken': getCookie('csrftoken')
                 },
-                success: function() {
-                    // Update UI
-                    button.removeClass('follow-button bg-blue-600 text-white hover:bg-blue-700')
-                          .addClass('unfollow-button border border-gray-300 hover:bg-gray-100')
-                          .html('<i class="fas fa-user-check mr-2"></i> Following');
+                success: function(response) {
+                    if (response.following) {
+                        button.data('following', true);
+                        button.removeClass('bg-primary text-white').addClass('bg-light text-primary border border-primary');
+                        button.text('Following');
+                    } else {
+                        button.data('following', false);
+                        button.removeClass('bg-light text-primary border border-primary').addClass('bg-primary text-white');
+                        button.text('Follow');
+                    }
                 },
                 error: function(xhr) {
-                    console.error(xhr.responseText);
+                    console.error('Error following/unfollowing user:', xhr.responseText);
                 }
             });
         });
         
-        // Unfollow button click
-        $('.unfollow-button').click(function() {
-            const userId = $(this).data('user-id');
+        // Follow/Unfollow Hashtag
+        $('.follow-hashtag-button').click(function() {
             const button = $(this);
+            const hashtagId = button.data('hashtag-id');
+            const isFollowing = button.data('following');
             
             $.ajax({
-                url: '{% url "social_interactions:follow-delete" %}' + userId + '/',
-                type: 'DELETE',
+                url: `/api/hashtags/${hashtagId}/follow/`,
+                type: 'POST',
                 headers: {
-                    'Authorization': 'Bearer ' + localStorage.getItem('access_token')
+                    'X-CSRFToken': getCookie('csrftoken')
                 },
-                success: function() {
-                    // Update UI
-                    button.removeClass('unfollow-button border border-gray-300 hover:bg-gray-100')
-                          .addClass('follow-button bg-blue-600 text-white hover:bg-blue-700')
-                          .html('<i class="fas fa-user-plus mr-2"></i> Follow');
+                success: function(response) {
+                    if (response.following) {
+                        button.data('following', true);
+                        button.removeClass('bg-primary text-white').addClass('bg-light text-primary border border-primary');
+                        button.text('Following');
+                    } else {
+                        button.data('following', false);
+                        button.removeClass('bg-light text-primary border border-primary').addClass('bg-primary text-white');
+                        button.text('Follow');
+                    }
                 },
                 error: function(xhr) {
-                    console.error(xhr.responseText);
+                    console.error('Error following/unfollowing hashtag:', xhr.responseText);
                 }
             });
         });
+        
+        // Like/Unlike Post
+        $('.like-button').click(function() {
+            const button = $(this);
+            const postId = button.data('post-id');
+            
+            $.ajax({
+                url: `/api/posts/${postId}/like/`,
+                type: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                success: function(response) {
+                    if (response.liked) {
+                        button.addClass('text-primary');
+                    } else {
+                        button.removeClass('text-primary');
+                    }
+                    
+                    // Update like count
+                    const likesCountElement = button.closest('.post').find('.post-stats span:first-child');
+                    likesCountElement.text(`${response.count} likes`);
+                },
+                error: function(xhr) {
+                    console.error('Error liking post:', xhr.responseText);
+                }
+            });
+        });
+        
+        // Helper function to get CSRF token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
     });
 </script>
 {% endblock %} 

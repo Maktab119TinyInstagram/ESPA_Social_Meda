@@ -1,7 +1,8 @@
-from django.shortcuts import render
-from django.views.generic import TemplateView
+from django.shortcuts import render, redirect
+from django.views.generic import TemplateView, View
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
+from django.contrib.auth import logout
 
 from posts.models import Post
 
@@ -47,3 +48,21 @@ class RegisterView(TemplateView):
     View for the registration page.
     """
     template_name = 'accounts/register.html'
+
+
+class PasswordResetView(TemplateView):
+    """
+    View for the password reset page.
+    """
+    template_name = 'accounts/password_reset.html'
+
+
+class CustomLogoutView(View):
+    """
+    View for logging out a user, clearing both Django session and JWT tokens.
+    """
+    def get(self, request):
+        # Clear Django session
+        logout(request)
+        # Return to login page with script to clear localStorage
+        return render(request, 'accounts/logout.html')

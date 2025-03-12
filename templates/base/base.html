@@ -7,6 +7,19 @@
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#0390b7',
+                        secondary: '#063346',
+                        light: '#ebffff',
+                    }
+                }
+            }
+        }
+    </script>
     
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -17,17 +30,17 @@
     <!-- Custom CSS -->
     <style>
         body {
-            background-color: #f0f2f5;
+            background-color: #ebffff;
         }
         
         .navbar {
-            background-color: #ffffff;
+            background-color: #063346;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
         
         .active-nav-link {
-            color: #3b82f6;
-            border-bottom: 2px solid #3b82f6;
+            color: #0390b7;
+            border-bottom: 2px solid #0390b7;
         }
     </style>
     
@@ -39,12 +52,12 @@
         <div class="container mx-auto px-4 py-2">
             <div class="flex justify-between items-center">
                 <!-- Logo -->
-                <a href="{% url 'home' %}" class="text-2xl font-bold text-blue-600">ESPA</a>
+                <a href="{% url 'home' %}" class="text-2xl font-bold text-primary">ESPA</a>
                 
                 <!-- Search Bar (Medium and larger screens) -->
                 <div class="hidden md:block w-1/3">
                     <form action="{% url 'posts:search' %}" method="GET" class="relative">
-                        <input type="text" name="q" placeholder="Search..." class="w-full px-4 py-2 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <input type="text" name="q" placeholder="Search..." class="w-full px-4 py-2 border rounded-full focus:outline-none focus:ring-2 focus:ring-primary">
                         <button type="submit" class="absolute right-3 top-2 text-gray-500">
                             <i class="fas fa-search"></i>
                         </button>
@@ -53,16 +66,16 @@
                 
                 <!-- Navigation Links -->
                 <div class="flex items-center space-x-6">
-                    <a href="{% url 'home' %}" class="nav-link py-4 px-2 {% if request.resolver_match.url_name == 'home' %}active-nav-link{% endif %}">
+                    <a href="{% url 'home' %}" class="nav-link py-4 px-2 text-light {% if request.resolver_match.url_name == 'home' %}active-nav-link{% endif %}">
                         <i class="fas fa-home text-xl"></i>
                     </a>
-                    <a href="{% url 'posts:explore' %}" class="nav-link py-4 px-2 {% if request.resolver_match.url_name == 'explore' %}active-nav-link{% endif %}">
+                    <a href="{% url 'posts:explore' %}" class="nav-link py-4 px-2 text-light {% if request.resolver_match.url_name == 'explore' %}active-nav-link{% endif %}">
                         <i class="fas fa-compass text-xl"></i>
                     </a>
-                    <a href="{% url 'posts:create' %}" class="nav-link py-4 px-2 {% if request.resolver_match.url_name == 'create' %}active-nav-link{% endif %}">
+                    <a href="{% url 'posts:post-create' %}" class="nav-link py-4 px-2 text-light {% if request.resolver_match.url_name == 'post-create' %}active-nav-link{% endif %}">
                         <i class="fas fa-plus-square text-xl"></i>
                     </a>
-                    <a href="{% url 'social_interactions:notifications' %}" class="nav-link py-4 px-2 {% if request.resolver_match.url_name == 'notifications' %}active-nav-link{% endif %}">
+                    <a href="#" class="nav-link py-4 px-2 text-light {% if request.resolver_match.url_name == 'notifications' %}active-nav-link{% endif %}">
                         <i class="fas fa-bell text-xl"></i>
                     </a>
                     
@@ -72,21 +85,21 @@
                             {% if user.profile_picture %}
                                 <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}" class="w-8 h-8 rounded-full">
                             {% else %}
-                                <div class="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center">
-                                    <span class="text-gray-600 font-bold">{{ user.username.0|upper }}</span>
+                                <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
+                                    <span class="text-light font-bold">{{ user.username.0|upper }}</span>
                                 </div>
                             {% endif %}
                         </button>
                         
                         <div class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 hidden" id="dropdown-menu">
-                            <a href="{% url 'accounts:profile' user.username %}" class="block px-4 py-2 text-gray-800 hover:bg-gray-100">
+                            <a href="#" class="block px-4 py-2 text-secondary hover:bg-light">
                                 <i class="fas fa-user mr-2"></i> Profile
                             </a>
-                            <a href="{% url 'accounts:settings' %}" class="block px-4 py-2 text-gray-800 hover:bg-gray-100">
+                            <a href="#" class="block px-4 py-2 text-secondary hover:bg-light">
                                 <i class="fas fa-cog mr-2"></i> Settings
                             </a>
                             <div class="border-t border-gray-200 my-1"></div>
-                            <a href="{% url 'logout' %}" class="block px-4 py-2 text-gray-800 hover:bg-gray-100">
+                            <a href="{% url 'logout' %}" class="block px-4 py-2 text-secondary hover:bg-light">
                                 <i class="fas fa-sign-out-alt mr-2"></i> Logout
                             </a>
                         </div>
@@ -97,7 +110,7 @@
             <!-- Search Bar (Small screens) -->
             <div class="md:hidden mt-2">
                 <form action="{% url 'posts:search' %}" method="GET" class="relative">
-                    <input type="text" name="q" placeholder="Search..." class="w-full px-4 py-2 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <input type="text" name="q" placeholder="Search..." class="w-full px-4 py-2 border rounded-full focus:outline-none focus:ring-2 focus:ring-primary">
                     <button type="submit" class="absolute right-3 top-2 text-gray-500">
                         <i class="fas fa-search"></i>
                     </button>
@@ -112,23 +125,23 @@
     </div>
     
     <!-- Footer -->
-    <footer class="bg-white py-6 mt-10">
+    <footer class="bg-secondary text-light py-6 mt-10">
         <div class="container mx-auto px-4">
             <div class="flex flex-col md:flex-row justify-between items-center">
                 <div class="mb-4 md:mb-0">
-                    <p class="text-gray-600">&copy; 2023 ESPA Social Network. All rights reserved.</p>
+                    <p>&copy; 2023 ESPA Social Network. All rights reserved.</p>
                 </div>
                 <div class="flex space-x-4">
-                    <a href="#" class="text-gray-600 hover:text-blue-600">
+                    <a href="#" class="text-light hover:text-primary">
                         <i class="fab fa-facebook-f"></i>
                     </a>
-                    <a href="#" class="text-gray-600 hover:text-blue-600">
+                    <a href="#" class="text-light hover:text-primary">
                         <i class="fab fa-twitter"></i>
                     </a>
-                    <a href="#" class="text-gray-600 hover:text-blue-600">
+                    <a href="#" class="text-light hover:text-primary">
                         <i class="fab fa-instagram"></i>
                     </a>
-                    <a href="#" class="text-gray-600 hover:text-blue-600">
+                    <a href="#" class="text-light hover:text-primary">
                         <i class="fab fa-linkedin-in"></i>
                     </a>
                 </div>
@@ -177,8 +190,202 @@
                 if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !this.crossDomain) {
                     xhr.setRequestHeader("X-CSRFToken", csrftoken);
                 }
+                
+                // Add JWT token to requests if available
+                const token = localStorage.getItem('access_token');
+                if (token) {
+                    xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+                }
             }
         });
+        
+        // Check if user is authenticated
+        $(document).ready(function() {
+            // We don't need to check for token here anymore as we're using Django's session authentication
+            // The JWTAuthenticationMiddleware will handle JWT tokens
+            // This check is left empty intentionally, as the server-side authentication will take care of redirects
+            // If we're on login, register, or password-reset pages, we don't need to check authentication
+            if (window.location.pathname === '/login/' || window.location.pathname === '/register/' || window.location.pathname === '/password-reset/') {
+                // No need to check authentication on these pages
+                return;
+            }
+            
+            // For API calls, we'll still use the JWT token if available
+            const token = localStorage.getItem('access_token');
+            if (token) {
+                // Add the token to the Authorization header for all AJAX requests
+                $.ajaxSetup({
+                    beforeSend: function(xhr) {
+                        xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+                    }
+                });
+            }
+        });
+        
+        // Function to follow or unfollow a user
+        function toggleFollow(userId, button) {
+            const isFollowing = $(button).hasClass('following');
+            
+            if (isFollowing) {
+                // Unfollow
+                $.ajax({
+                    url: `/api/social/follows/${userId}/`,
+                    type: 'DELETE',
+                    success: function() {
+                        $(button).removeClass('following bg-gray-200')
+                                .addClass('bg-primary text-white')
+                                .html('<i class="fas fa-user-plus mr-1"></i> Follow');
+                        
+                        // Update followers count if shown on page
+                        const countElement = $(`.follower-count[data-user-id="${userId}"]`);
+                        if (countElement.length) {
+                            let count = parseInt(countElement.text()) - 1;
+                            countElement.text(count);
+                        }
+                    },
+                    error: function(xhr) {
+                        console.error('Error unfollowing user:', xhr.responseText);
+                        alert('Failed to unfollow user. Please try again.');
+                    }
+                });
+            } else {
+                // Follow
+                $.ajax({
+                    url: '/api/social/follows/',
+                    type: 'POST',
+                    data: {
+                        following_id: userId
+                    },
+                    success: function() {
+                        $(button).addClass('following bg-gray-200')
+                                .removeClass('bg-primary text-white')
+                                .html('<i class="fas fa-user-check mr-1"></i> Following');
+                        
+                        // Update followers count if shown on page
+                        const countElement = $(`.follower-count[data-user-id="${userId}"]`);
+                        if (countElement.length) {
+                            let count = parseInt(countElement.text()) + 1;
+                            countElement.text(count);
+                        }
+                    },
+                    error: function(xhr) {
+                        console.error('Error following user:', xhr.responseText);
+                        alert('Failed to follow user. Please try again.');
+                    }
+                });
+            }
+        }
+        
+        // Function to like or unlike a post
+        function toggleLike(contentTypeStr, objectId, button) {
+            const isLiked = $(button).hasClass('liked');
+            
+            if (isLiked) {
+                // Unlike
+                $.ajax({
+                    url: `/api/social/likes/${contentTypeStr}/${objectId}/`,
+                    type: 'DELETE',
+                    success: function() {
+                        $(button).removeClass('liked text-red-500')
+                                .addClass('text-gray-500');
+                        
+                        // Update like count
+                        const countElement = $(button).siblings('.like-count');
+                        if (countElement.length) {
+                            let count = parseInt(countElement.text()) - 1;
+                            countElement.text(count);
+                        }
+                    },
+                    error: function(xhr) {
+                        console.error('Error unliking:', xhr.responseText);
+                        alert('Failed to unlike. Please try again.');
+                    }
+                });
+            } else {
+                // Like
+                $.ajax({
+                    url: '/api/social/likes/',
+                    type: 'POST',
+                    data: {
+                        content_type_str: contentTypeStr,
+                        object_id: objectId,
+                        like_type: 'like'
+                    },
+                    success: function() {
+                        $(button).addClass('liked text-red-500')
+                                .removeClass('text-gray-500');
+                        
+                        // Update like count
+                        const countElement = $(button).siblings('.like-count');
+                        if (countElement.length) {
+                            let count = parseInt(countElement.text()) + 1;
+                            countElement.text(count);
+                        }
+                    },
+                    error: function(xhr) {
+                        console.error('Error liking:', xhr.responseText);
+                        alert('Failed to like. Please try again.');
+                    }
+                });
+            }
+        }
+        
+        // Function to add a comment
+        function addComment(postId, commentInput) {
+            const content = $(commentInput).val().trim();
+            
+            if (!content) {
+                return;
+            }
+            
+            $.ajax({
+                url: '/api/social/comments/',
+                type: 'POST',
+                data: {
+                    post: postId,
+                    description: content
+                },
+                success: function(response) {
+                    // Clear the input
+                    $(commentInput).val('');
+                    
+                    // Refresh comments or add the new comment to the list
+                    if (window.location.pathname.includes('/posts/')) {
+                        // If on post detail page, reload comments section
+                        location.reload();
+                    } else {
+                        // Otherwise, just clear the input
+                        alert('Comment added successfully!');
+                    }
+                },
+                error: function(xhr) {
+                    console.error('Error adding comment:', xhr.responseText);
+                    alert('Failed to add comment. Please try again.');
+                }
+            });
+        }
+        
+        // Function to share a post
+        function sharePost() {
+            if (navigator.share) {
+                navigator.share({
+                    title: document.title,
+                    url: window.location.href
+                })
+                .then(() => console.log('Successful share'))
+                .catch((error) => console.log('Error sharing:', error));
+            } else {
+                // Fallback for browsers that don't support the Web Share API
+                const dummy = document.createElement('input');
+                document.body.appendChild(dummy);
+                dummy.value = window.location.href;
+                dummy.select();
+                document.execCommand('copy');
+                document.body.removeChild(dummy);
+                
+                alert('Link copied to clipboard!');
+            }
+        }
     </script>
     
     {% block extra_js %}{% endblock %}

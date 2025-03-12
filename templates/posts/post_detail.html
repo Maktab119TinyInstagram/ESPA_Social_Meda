@@ -1,6 +1,6 @@
 {% extends 'base/base.html' %}
 
-{% block title %}{{ post.user.username }}'s Post | ESPA Social Network{% endblock %}
+{% block title %}Post | ESPA Social Network{% endblock %}
 
 {% block content %}
 <div class="max-w-3xl mx-auto">
@@ -11,12 +11,12 @@
                 {% if post.user.profile_picture %}
                     <img src="{{ post.user.profile_picture.url }}" alt="{{ post.user.username }}" class="w-12 h-12 rounded-full mr-4">
                 {% else %}
-                    <div class="w-12 h-12 rounded-full bg-gray-300 flex items-center justify-center mr-4">
-                        <span class="text-gray-600 text-xl font-bold">{{ post.user.username.0|upper }}</span>
+                    <div class="w-12 h-12 rounded-full bg-primary flex items-center justify-center mr-4">
+                        <span class="text-light text-xl font-bold">{{ post.user.username.0|upper }}</span>
                     </div>
                 {% endif %}
                 <div>
-                    <h3 class="font-bold text-lg">{{ post.user.get_full_name }}</h3>
+                    <h3 class="font-bold text-lg text-secondary">{{ post.user.get_full_name }}</h3>
                     <p class="text-gray-600">
                         @{{ post.user.username }}
                         {% if post.location %}
@@ -32,10 +32,10 @@
                             <i class="fas fa-ellipsis-h"></i>
                         </button>
                         <div class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 hidden z-10" id="post-options-menu">
-                            <a href="{% url 'posts:post-update' post.id %}" class="block px-4 py-2 text-gray-800 hover:bg-gray-100">
+                            <a href="#" class="block px-4 py-2 text-secondary hover:bg-light">
                                 <i class="fas fa-edit mr-2"></i> Edit Post
                             </a>
-                            <button class="block w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100" id="delete-post-btn">
+                            <button class="block w-full text-left px-4 py-2 text-red-600 hover:bg-light" id="delete-post-btn">
                                 <i class="fas fa-trash-alt mr-2"></i> Delete Post
                             </button>
                         </div>
@@ -72,7 +72,7 @@
             {% if post.hashtags.exists %}
                 <div class="mb-6">
                     {% for hashtag in post.hashtags.all %}
-                        <a href="{% url 'posts:hashtag-posts' hashtag.title %}" class="text-blue-600 hover:underline mr-2">#{{ hashtag.title }}</a>
+                        <a href="{% url 'posts:hashtag-posts' hashtag.title %}" class="text-primary hover:underline mr-2">#{{ hashtag.title }}</a>
                     {% endfor %}
                 </div>
             {% endif %}
@@ -85,65 +85,63 @@
             
             <!-- Post Actions -->
             <div class="flex justify-between border-t border-b py-3 mb-6">
-                <button class="like-button flex items-center {% if post.is_liked %}text-blue-600{% endif %}" data-post-id="{{ post.id }}">
-                    <i class="fas {% if post.is_liked %}fa-thumbs-up{% else %}fa-thumbs-o-up{% endif %} mr-2"></i> Like
+                <button class="like-button flex items-center {% if user_liked %}liked text-red-500{% else %}text-gray-500{% endif %}" 
+                       onclick="toggleLike('post', {{ post.id }}, this)">
+                    <i class="fas fa-heart mr-2"></i> <span class="like-count">{{ post.get_likes_count }}</span> Likes
                 </button>
-                <button class="comment-button flex items-center" data-post-id="{{ post.id }}">
-                    <i class="fas fa-comment-o mr-2"></i> Comment
+                <button class="comment-button flex items-center text-gray-500" 
+                       onclick="document.getElementById('comment-input').focus()">
+                    <i class="fas fa-comment mr-2"></i> <span>{{ post.get_comments_count }}</span> Comments
                 </button>
-                <button class="share-button flex items-center" data-post-id="{{ post.id }}">
+                <button class="share-button flex items-center text-gray-500" 
+                       onclick="sharePost()">
                     <i class="fas fa-share mr-2"></i> Share
                 </button>
             </div>
             
             <!-- Comments Section -->
             <div class="comments-section">
-                <h3 class="text-xl font-bold mb-4">Comments</h3>
+                <h3 class="font-bold text-lg mb-4 text-secondary">Comments</h3>
                 
                 <!-- Comment Form -->
-                <form class="comment-form mb-6" data-post-id="{{ post.id }}">
-                    <div class="flex">
-                        {% if request.user.profile_picture %}
-                            <img src="{{ request.user.profile_picture.url }}" alt="{{ request.user.username }}" class="w-10 h-10 rounded-full mr-3">
-                        {% else %}
-                            <div class="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center mr-3">
-                                <span class="text-gray-600 text-lg font-bold">{{ request.user.username.0|upper }}</span>
-                            </div>
-                        {% endif %}
-                        <div class="flex-grow">
-                            <input type="text" placeholder="Write a comment..." class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <button type="submit" class="mt-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-200">
-                                Post Comment
-                            </button>
-                        </div>
-                    </div>
-                </form>
+                <div class="mb-6">
+                    <form class="flex" id="comment-form">
+                        <input type="text" id="comment-input" 
+                               class="flex-grow px-4 py-2 border rounded-l-lg focus:outline-none focus:ring-2 focus:ring-primary" 
+                               placeholder="Add a comment...">
+                        <button type="button" 
+                                class="bg-primary text-white px-4 py-2 rounded-r-lg hover:bg-opacity-90 transition" 
+                                onclick="addComment({{ post.id }}, '#comment-input')">
+                            Post
+                        </button>
+                    </form>
+                </div>
                 
                 <!-- Comments List -->
-                <div class="comments-list space-y-4">
-                    {% for comment in post.comments.all %}
+                <div id="comments-list" class="space-y-4">
+                    {% for comment in comments %}
                         <div class="comment" id="comment-{{ comment.id }}">
                             <div class="flex">
                                 {% if comment.user.profile_picture %}
                                     <img src="{{ comment.user.profile_picture.url }}" alt="{{ comment.user.username }}" class="w-10 h-10 rounded-full mr-3">
                                 {% else %}
-                                    <div class="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center mr-3">
-                                        <span class="text-gray-600 text-lg font-bold">{{ comment.user.username.0|upper }}</span>
+                                    <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center mr-3">
+                                        <span class="text-light text-lg font-bold">{{ comment.user.username.0|upper }}</span>
                                     </div>
                                 {% endif %}
                                 <div class="flex-grow">
-                                    <div class="bg-gray-100 rounded-lg px-4 py-3">
+                                    <div class="bg-light rounded-lg px-4 py-3">
                                         <div class="flex justify-between items-start">
-                                            <p class="font-bold">{{ comment.user.username }}</p>
+                                            <p class="font-bold text-secondary">{{ comment.user.username }}</p>
                                             <span class="text-gray-500 text-sm">{{ comment.created_at|date:"M j, g:i a" }}</span>
                                         </div>
                                         <p class="mt-1">{{ comment.description }}</p>
                                     </div>
                                     
                                     <div class="flex mt-1 text-sm">
-                                        <button class="like-comment-button mr-4 {% if comment.is_liked %}text-blue-600{% endif %}" data-comment-id="{{ comment.id }}">
-                                            <i class="fas {% if comment.is_liked %}fa-thumbs-up{% else %}fa-thumbs-o-up{% endif %} mr-1"></i> 
-                                            <span>{{ comment.get_likes_count }}</span>
+                                        <button class="like-comment-button mr-4 {% if comment.is_liked %}text-primary{% endif %}" data-comment-id="{{ comment.id }}">
+                                            <i class="fas fa-heart mr-1"></i> 
+                                            <span class="like-count">{{ comment.get_likes_count }}</span>
                                         </button>
                                         <button class="reply-button mr-4" data-comment-id="{{ comment.id }}">
                                             <i class="fas fa-reply mr-1"></i> Reply
@@ -167,13 +165,13 @@
 </div>
 
 <!-- Delete Post Confirmation Modal -->
-<div id="delete-post-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+<div id="delete-confirmation" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
     <div class="bg-white rounded-lg p-6 max-w-md w-full">
-        <h3 class="text-xl font-bold mb-4">Delete Post</h3>
+        <h3 class="text-xl font-bold mb-4 text-secondary">Delete Post</h3>
         <p class="mb-6">Are you sure you want to delete this post? This action cannot be undone.</p>
         <div class="flex justify-end space-x-4">
-            <button id="cancel-delete" class="px-4 py-2 border rounded-lg hover:bg-gray-100">Cancel</button>
-            <button id="confirm-delete" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">Delete</button>
+            <button id="cancel-delete" class="px-4 py-2 border rounded-lg hover:bg-light">Cancel</button>
+            <button id="confirm-delete" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700" data-post-id="{{ post.id }}">Delete</button>
         </div>
     </div>
 </div>
@@ -195,27 +193,27 @@
         
         // Delete post modal
         $('#delete-post-btn').click(function() {
-            $('#delete-post-modal').removeClass('hidden');
+            $('#delete-confirmation').removeClass('hidden');
         });
         
         $('#cancel-delete').click(function() {
-            $('#delete-post-modal').addClass('hidden');
+            $('#delete-confirmation').addClass('hidden');
         });
         
         $('#confirm-delete').click(function() {
-            // Delete the post
+            const postId = $(this).data('post-id');
+            
             $.ajax({
-                url: '{% url "posts:post-detail" post.id %}',
+                url: `/api/posts/${postId}/`,
                 type: 'DELETE',
                 headers: {
-                    'Authorization': 'Bearer ' + localStorage.getItem('access_token')
+                    'X-CSRFToken': getCookie('csrftoken')
                 },
                 success: function() {
-                    // Redirect to home page
                     window.location.href = '{% url "home" %}';
                 },
                 error: function(xhr) {
-                    console.error(xhr.responseText);
+                    console.error('Error deleting post:', xhr.responseText);
                 }
             });
         });
@@ -223,92 +221,102 @@
         // Like button click
         $('.like-button').click(function() {
             const postId = $(this).data('post-id');
-            const button = $(this);
+            const likeButton = $(this);
             
-            if (button.hasClass('text-blue-600')) {
-                // Unlike the post
-                $.ajax({
-                    url: '{% url "social_interactions:like-delete" "post" 0 %}'.replace('0', postId),
-                    type: 'DELETE',
-                    headers: {
-                        'Authorization': 'Bearer ' + localStorage.getItem('access_token')
-                    },
-                    success: function() {
-                        // Update UI
-                        button.removeClass('text-blue-600');
-                        button.find('i').removeClass('fa-thumbs-up').addClass('fa-thumbs-o-up');
-                        
-                        // Update like count
-                        const likesCountElement = $('.post-stats span:first-child');
-                        const likesCount = parseInt(likesCountElement.text());
-                        likesCountElement.text((likesCount - 1) + ' likes');
-                    },
-                    error: function(xhr) {
-                        console.error(xhr.responseText);
+            $.ajax({
+                url: `/api/posts/${postId}/like/`,
+                type: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                success: function(response) {
+                    // Update like button appearance
+                    if (response.liked) {
+                        likeButton.addClass('text-primary');
+                    } else {
+                        likeButton.removeClass('text-primary');
                     }
-                });
-            } else {
-                // Like the post
-                $.ajax({
-                    url: '{% url "social_interactions:like-create" %}',
-                    type: 'POST',
-                    data: {
-                        content_type_str: 'post',
-                        object_id: postId,
-                        like_type: 'like'
-                    },
-                    headers: {
-                        'Authorization': 'Bearer ' + localStorage.getItem('access_token')
-                    },
-                    success: function() {
-                        // Update UI
-                        button.addClass('text-blue-600');
-                        button.find('i').removeClass('fa-thumbs-o-up').addClass('fa-thumbs-up');
-                        
-                        // Update like count
-                        const likesCountElement = $('.post-stats span:first-child');
-                        const likesCount = parseInt(likesCountElement.text());
-                        likesCountElement.text((likesCount + 1) + ' likes');
-                    },
-                    error: function(xhr) {
-                        console.error(xhr.responseText);
-                    }
-                });
-            }
+                    
+                    // Update like count
+                    const likesCountElement = $('.post-stats span:first-child');
+                    likesCountElement.text(`${response.count} likes`);
+                },
+                error: function(xhr) {
+                    console.error('Error liking post:', xhr.responseText);
+                }
+            });
         });
         
         // Comment form submission
-        $('.comment-form').submit(function(e) {
+        $('#comment-form').submit(function(e) {
             e.preventDefault();
             
-            const form = $(this);
-            const postId = form.data('post-id');
-            const commentInput = form.find('input');
-            const comment = commentInput.val().trim();
+            const postId = $(this).data('post-id');
+            const commentText = $('#comment-text').val();
             
-            if (comment === '') {
-                return;
-            }
+            if (!commentText.trim()) return;
             
             $.ajax({
-                url: '{% url "social_interactions:comment-create" %}',
+                url: `/api/posts/${postId}/comments/`,
                 type: 'POST',
                 data: {
-                    post: postId,
-                    description: comment
+                    content: commentText
                 },
                 headers: {
-                    'Authorization': 'Bearer ' + localStorage.getItem('access_token')
+                    'X-CSRFToken': getCookie('csrftoken')
                 },
                 success: function(response) {
-                    // Clear the input
-                    commentInput.val('');
+                    // Clear comment input
+                    $('#comment-text').val('');
                     
-                    // Reload the page to show the new comment
-                    window.location.reload();
+                    // Add new comment to the list
+                    const newComment = `
+                        <div class="comment" id="comment-${response.id}">
+                            <div class="flex">
+                                <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center mr-3">
+                                    <span class="text-light text-lg font-bold">${response.user.username.charAt(0).toUpperCase()}</span>
+                                </div>
+                                <div class="flex-grow">
+                                    <div class="bg-light rounded-lg px-4 py-3">
+                                        <div class="flex justify-between items-start">
+                                            <p class="font-bold text-secondary">${response.user.username}</p>
+                                            <span class="text-gray-500 text-sm">Just now</span>
+                                        </div>
+                                        <p class="mt-1">${response.content}</p>
+                                    </div>
+                                    
+                                    <div class="flex mt-1 text-sm">
+                                        <button class="like-comment-button mr-4" data-comment-id="${response.id}">
+                                            <i class="fas fa-heart mr-1"></i> 
+                                            <span class="like-count">0</span>
+                                        </button>
+                                        <button class="reply-button mr-4" data-comment-id="${response.id}">
+                                            <i class="fas fa-reply mr-1"></i> Reply
+                                        </button>
+                                        <button class="delete-comment-button text-red-600" data-comment-id="${response.id}">
+                                            <i class="fas fa-trash-alt mr-1"></i> Delete
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Add to the beginning of the comments list
+                    $('#comments-list').prepend(newComment);
+                    
+                    // Remove "no comments" message if it exists
+                    if ($('#comments-list p.text-center').length) {
+                        $('#comments-list p.text-center').remove();
+                    }
+                    
+                    // Update comment count
+                    const commentsCountElement = $('.post-stats span:last-child');
+                    const commentsCount = parseInt(commentsCountElement.text());
+                    commentsCountElement.text(`${commentsCount + 1} comments`);
                 },
                 error: function(xhr) {
-                    console.error(xhr.responseText);
+                    console.error('Error posting comment:', xhr.responseText);
                 }
             });
         });
@@ -316,58 +324,30 @@
         // Like comment button click
         $('.like-comment-button').click(function() {
             const commentId = $(this).data('comment-id');
-            const button = $(this);
+            const likeButton = $(this);
             
-            if (button.hasClass('text-blue-600')) {
-                // Unlike the comment
-                $.ajax({
-                    url: '{% url "social_interactions:like-delete" "comment" 0 %}'.replace('0', commentId),
-                    type: 'DELETE',
-                    headers: {
-                        'Authorization': 'Bearer ' + localStorage.getItem('access_token')
-                    },
-                    success: function() {
-                        // Update UI
-                        button.removeClass('text-blue-600');
-                        button.find('i').removeClass('fa-thumbs-up').addClass('fa-thumbs-o-up');
-                        
-                        // Update like count
-                        const likesCountElement = button.find('span');
-                        const likesCount = parseInt(likesCountElement.text());
-                        likesCountElement.text(likesCount - 1);
-                    },
-                    error: function(xhr) {
-                        console.error(xhr.responseText);
+            $.ajax({
+                url: `/api/comments/${commentId}/like/`,
+                type: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                success: function(response) {
+                    // Update like button appearance
+                    if (response.liked) {
+                        likeButton.addClass('text-primary');
+                    } else {
+                        likeButton.removeClass('text-primary');
                     }
-                });
-            } else {
-                // Like the comment
-                $.ajax({
-                    url: '{% url "social_interactions:like-create" %}',
-                    type: 'POST',
-                    data: {
-                        content_type_str: 'comment',
-                        object_id: commentId,
-                        like_type: 'like'
-                    },
-                    headers: {
-                        'Authorization': 'Bearer ' + localStorage.getItem('access_token')
-                    },
-                    success: function() {
-                        // Update UI
-                        button.addClass('text-blue-600');
-                        button.find('i').removeClass('fa-thumbs-o-up').addClass('fa-thumbs-up');
-                        
-                        // Update like count
-                        const likesCountElement = button.find('span');
-                        const likesCount = parseInt(likesCountElement.text());
-                        likesCountElement.text(likesCount + 1);
-                    },
-                    error: function(xhr) {
-                        console.error(xhr.responseText);
-                    }
-                });
-            }
+                    
+                    // Update like count
+                    const likeCountElement = likeButton.find('.like-count');
+                    likeCountElement.text(response.count);
+                },
+                error: function(xhr) {
+                    console.error('Error liking comment:', xhr.responseText);
+                }
+            });
         });
         
         // Delete comment button click
@@ -376,10 +356,10 @@
             
             if (confirm('Are you sure you want to delete this comment?')) {
                 $.ajax({
-                    url: '{% url "social_interactions:comment-delete" 0 %}'.replace('0', commentId),
+                    url: `/api/comments/${commentId}/`,
                     type: 'DELETE',
                     headers: {
-                        'Authorization': 'Bearer ' + localStorage.getItem('access_token')
+                        'X-CSRFToken': getCookie('csrftoken')
                     },
                     success: function() {
                         // Remove the comment from the UI
@@ -388,14 +368,35 @@
                         // Update comment count
                         const commentsCountElement = $('.post-stats span:last-child');
                         const commentsCount = parseInt(commentsCountElement.text());
-                        commentsCountElement.text((commentsCount - 1) + ' comments');
+                        commentsCountElement.text(`${commentsCount - 1} comments`);
+                        
+                        // Add "no comments" message if there are no more comments
+                        if ($('#comments-list').children().length === 0) {
+                            $('#comments-list').html('<p class="text-gray-600 text-center py-4">No comments yet. Be the first to comment!</p>');
+                        }
                     },
                     error: function(xhr) {
-                        console.error(xhr.responseText);
+                        console.error('Error deleting comment:', xhr.responseText);
                     }
                 });
             }
         });
+        
+        // Helper function to get CSRF token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
     });
 </script>
 {% endblock %} 

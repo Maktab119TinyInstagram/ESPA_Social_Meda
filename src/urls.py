@@ -22,9 +22,15 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
     
+    # Core URLs
+    path('', include('core.urls')),
+    
+    # Frontend URLs
+    path('posts/', include('posts.urls')),
+    
     # API URLs
     path('api/accounts/', include('accounts.urls')),
-    path('api/posts/', include('posts.urls')),
+    path('api/posts/', include('posts.api_urls')),
     path('api/social/', include('social_interactions.urls')),
     
     # Debug toolbar

@@ -1,23 +1,48 @@
 from django.urls import path
-from . import views
+from .views import (
+    PostListCreateAPIView,
+    PostRetrieveUpdateDestroyAPIView,
+    PostLikeAPIView,
+    CommentListCreateAPIView,
+    CommentRetrieveUpdateDestroyAPIView,
+    ExploreView,
+    SearchView,
+    PostDetailView,
+    PostCreateView,
+    HashtagPostsView,
+    MediaCreateAPIView,
+    MediaRetrieveUpdateDestroyAPIView,
+    HashtagListAPIView,
+    HashtagPostsAPIView,
+    ExploreAPIView,
+    SearchAPIView
+)
 
 app_name = 'posts'
 
+# API Endpoints
+api_urlpatterns = [
+    path('', PostListCreateAPIView.as_view(), name='post-list-create'),
+    path('<int:pk>/', PostRetrieveUpdateDestroyAPIView.as_view(), name='post-detail-api'),
+    path('<int:pk>/like/', PostLikeAPIView.as_view(), name='post-like'),
+    path('<int:post_id>/comments/', CommentListCreateAPIView.as_view(), name='comment-list-create'),
+    path('comments/<int:pk>/', CommentRetrieveUpdateDestroyAPIView.as_view(), name='comment-detail'),
+    path('media/', MediaCreateAPIView.as_view(), name='media-create'),
+    path('media/<int:pk>/', MediaRetrieveUpdateDestroyAPIView.as_view(), name='media-detail'),
+    path('hashtags/', HashtagListAPIView.as_view(), name='hashtag-list'),
+    path('hashtags/<str:title>/', HashtagPostsAPIView.as_view(), name='hashtag-posts-api'),
+    path('explore/', ExploreAPIView.as_view(), name='explore-api'),
+    path('search/', SearchAPIView.as_view(), name='search-api'),
+]
+
+# Frontend Views
 urlpatterns = [
-    # API endpoints
-    path('', views.PostListCreateAPIView.as_view(), name='post-list-create'),
-    path('<int:pk>/', views.PostRetrieveUpdateDestroyAPIView.as_view(), name='post-detail'),
-    path('media/', views.MediaCreateAPIView.as_view(), name='media-create'),
-    path('media/<int:pk>/', views.MediaRetrieveUpdateDestroyAPIView.as_view(), name='media-detail'),
-    path('hashtags/', views.HashtagListAPIView.as_view(), name='hashtag-list'),
-    path('hashtags/<str:title>/', views.HashtagPostsAPIView.as_view(), name='hashtag-posts-api'),
-    path('explore-api/', views.ExploreAPIView.as_view(), name='explore-api'),
-    path('search/', views.SearchAPIView.as_view(), name='search-api'),
-    
-    # Template views
-    path('explore/', views.ExploreView.as_view(), name='explore'),
-    path('search/', views.SearchView.as_view(), name='search'),
-    path('create/', views.PostCreateView.as_view(), name='create'),
-    path('post/<int:pk>/', views.PostDetailView.as_view(), name='post-detail'),
-    path('hashtag/<str:title>/', views.HashtagPostsView.as_view(), name='hashtag-posts'),
-] 
+    # Frontend views
+    path('explore/', ExploreView.as_view(), name='explore'),
+    path('search/', SearchView.as_view(), name='search'),
+    path('post/<int:pk>/', PostDetailView.as_view(), name='post-detail'),
+    path('post/create/', PostCreateView.as_view(), name='post-create'),
+    path('hashtag/<str:tag>/', HashtagPostsView.as_view(), name='hashtag-posts'),
+]
+
+# For API usage, we'll use the api_urlpatterns without adding them to urlpatterns 

@@ -3,8 +3,9 @@ from rest_framework import generics, status, permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, authenticate
 from django.utils.translation import gettext_lazy as _
+from django.db import models
 
 from .models import OTP
 from .serializers import (
@@ -167,3 +168,57 @@ class UserSearchView(generics.ListAPIView):
         if username:
             return User.objects.filter(username__icontains=username, is_active=True, is_deleted=False)
         return User.objects.none()
+
+
+class LoginAPIView(APIView):
+    """
+    API view for user login.
+    """
+    permission_classes = [permissions.AllowAny]
+    
+    def post(self, request):
+        """
+        Authenticate user and return tokens if valid.
+        """
+        username = request.data.get('username')
+        password = request.data.get('password')
+        
+        if not username or not password:
+            return Response({
+                'error': _('Please provide both username/email and password.')
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Try to find user by username or email
+        try:
+            user = User.objects.get(
+                models.Q(username=username) | models.Q(email=username)
+            )
+            
+            # Check password
+            if user.check_password(password):
+                if user.is_deleted:
+                    return Response({
+                        'error': _('This account has been deactivated.')
+                    }, status=status.HTTP_401_UNAUTHORIZED)
+                
+                # Generate tokens
+                refresh = RefreshToken.for_user(user)
+                
+                # Create Django session for the user
+                from django.contrib.auth import login
+                login(request, user)
+                
+                return Response({
+                    'refresh': str(refresh),
+                    'access': str(refresh.access_token),
+                    'user': UserSerializer(user).data
+                }, status=status.HTTP_200_OK)
+            else:
+                return Response({
+                    'error': _('Invalid username/email or password.')
+                }, status=status.HTTP_401_UNAUTHORIZED)
+                
+        except User.DoesNotExist:
+            return Response({
+                'error': _('Invalid username/email or password.')
+            }, status=status.HTTP_401_UNAUTHORIZED)

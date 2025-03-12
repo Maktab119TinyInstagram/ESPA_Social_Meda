@@ -5,7 +5,7 @@
 {% block content %}
 <div class="flex justify-center items-center min-h-[calc(100vh-200px)]">
     <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-        <h1 class="text-2xl font-bold mb-6 text-center">Login to ESPA</h1>
+        <h1 class="text-2xl font-bold mb-6 text-center text-secondary">Login to ESPA</h1>
         
         {% if messages %}
             <div class="mb-6">
@@ -20,29 +20,29 @@
         <form id="login-form" class="space-y-4">
             {% csrf_token %}
             <div>
-                <label for="username" class="block text-gray-700 mb-2">Username</label>
-                <input type="text" id="username" name="username" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                <label for="username" class="block text-secondary mb-2">Username or Email</label>
+                <input type="text" id="username" name="username" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" required>
             </div>
             
             <div>
-                <label for="password" class="block text-gray-700 mb-2">Password</label>
-                <input type="password" id="password" name="password" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                <label for="password" class="block text-secondary mb-2">Password</label>
+                <input type="password" id="password" name="password" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" required>
             </div>
             
             <div class="flex items-center">
                 <input type="checkbox" id="remember" name="remember" class="mr-2">
-                <label for="remember" class="text-gray-700">Remember me</label>
+                <label for="remember" class="text-secondary">Remember me</label>
             </div>
             
-            <button type="submit" class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-200">
+            <button type="submit" class="w-full bg-primary text-white py-2 px-4 rounded-lg hover:bg-opacity-90 transition duration-200">
                 Login
             </button>
         </form>
         
         <div class="mt-6 text-center">
-            <p class="text-gray-600">Don't have an account? <a href="{% url 'register' %}" class="text-blue-600 hover:underline">Register</a></p>
+            <p class="text-secondary">Don't have an account? <a href="{% url 'register' %}" class="text-primary hover:underline">Register</a></p>
             <p class="mt-2">
-                <a href="{% url 'accounts:password-reset' %}" class="text-blue-600 hover:underline">Forgot password?</a>
+                <a href="{% url 'password-reset' %}" class="text-primary hover:underline">Forgot password?</a>
             </p>
         </div>
     </div>
@@ -57,38 +57,31 @@
             
             const username = $('#username').val();
             const password = $('#password').val();
+            const remember = $('#remember').is(':checked');
             
             $.ajax({
-                url: '{% url "accounts:token-obtain" %}',
+                url: '/api/accounts/login/',
                 type: 'POST',
                 data: {
                     username: username,
-                    password: password
+                    password: password,
+                    remember: remember,
+                    csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val()
                 },
                 success: function(response) {
-                    // Store tokens in localStorage
+                    // Store the JWT token in localStorage for future API calls
                     localStorage.setItem('access_token', response.access);
                     localStorage.setItem('refresh_token', response.refresh);
                     
-                    // Redirect to home page
-                    window.location.href = '{% url "home" %}';
+                    // Reload the page completely to ensure Django session is recognized
+                    window.location.replace('{% url "home" %}');
                 },
                 error: function(xhr) {
-                    // Show error message
-                    let errorMessage = 'Invalid username or password';
-                    
-                    if (xhr.responseJSON && xhr.responseJSON.detail) {
-                        errorMessage = xhr.responseJSON.detail;
+                    let errorMessage = 'Login failed. Please check your credentials and try again.';
+                    if (xhr.responseJSON && xhr.responseJSON.error) {
+                        errorMessage = xhr.responseJSON.error;
                     }
-                    
-                    // Create error message element
-                    const errorDiv = $('<div class="p-4 mb-4 bg-red-100 text-red-700 rounded"></div>').text(errorMessage);
-                    
-                    // Remove any existing error messages
-                    $('.messages').remove();
-                    
-                    // Add error message before the form
-                    $('#login-form').before($('<div class="messages mb-6"></div>').append(errorDiv));
+                    alert(errorMessage);
                 }
             });
         });

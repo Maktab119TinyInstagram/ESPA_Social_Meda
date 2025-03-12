@@ -3,66 +3,55 @@
 {% block title %}Create Post | ESPA Social Network{% endblock %}
 
 {% block content %}
-<div class="max-w-3xl mx-auto">
-    <div class="bg-white p-6 rounded-lg shadow-md">
-        <h1 class="text-2xl font-bold mb-6">Create a New Post</h1>
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-2xl mx-auto bg-white rounded-lg shadow-md p-6">
+        <h1 class="text-2xl font-bold mb-6 text-center">Create New Post</h1>
         
-        <form id="create-post-form" enctype="multipart/form-data" class="space-y-6">
-            {% csrf_token %}
-            
-            <!-- Post Description -->
+        <form id="post-form" class="space-y-6">
             <div>
-                <label for="post-description" class="block text-gray-700 mb-2">What's on your mind?</label>
-                <textarea id="post-description" name="description" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" rows="4" placeholder="Share your thoughts..."></textarea>
+                <label for="description" class="block text-sm font-medium text-gray-700 mb-1">What's on your mind?</label>
+                <textarea id="description" name="description" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Share your thoughts..."></textarea>
             </div>
             
-            <!-- Media Upload -->
             <div>
-                <label for="post-media" class="block text-gray-700 mb-2">Add Photos/Videos</label>
-                <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center" id="media-drop-area">
-                    <input type="file" id="post-media" name="media_files" multiple class="hidden" accept="image/*,video/*">
-                    <div class="mb-4">
-                        <i class="fas fa-cloud-upload-alt text-4xl text-gray-400"></i>
-                    </div>
-                    <p class="text-gray-600 mb-2">Drag and drop files here or click to browse</p>
-                    <button type="button" id="browse-files" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition duration-200">
-                        Browse Files
-                    </button>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Add Photos/Videos</label>
+                <div id="media-upload-area" class="border-2 border-dashed border-gray-300 rounded-md p-6 text-center cursor-pointer hover:bg-gray-50">
+                    <input type="file" id="media-input" multiple accept="image/*,video/*" class="hidden">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    <p class="mt-1 text-sm text-gray-600">Click to upload or drag and drop</p>
+                    <p class="text-xs text-gray-500">PNG, JPG, GIF, MP4 up to 10MB</p>
                 </div>
                 
-                <!-- Preview Area -->
-                <div id="media-preview" class="grid grid-cols-2 gap-4 mt-4 hidden">
-                    <!-- Preview items will be added here dynamically -->
-                </div>
+                <div id="media-preview" class="mt-4 grid grid-cols-2 gap-4 hidden"></div>
             </div>
             
-            <!-- Hashtags -->
             <div>
-                <label for="post-hashtags" class="block text-gray-700 mb-2">Hashtags</label>
-                <input type="text" id="post-hashtags" name="hashtags" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g. #nature #travel (separate with spaces)">
+                <label for="hashtags" class="block text-sm font-medium text-gray-700 mb-1">Hashtags</label>
+                <input type="text" id="hashtags" name="hashtags" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Add hashtags separated by spaces (e.g. #nature #travel)">
             </div>
             
-            <!-- Location -->
             <div>
-                <label for="post-location" class="block text-gray-700 mb-2">Location</label>
-                <input type="text" id="post-location" name="location" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Where are you?">
+                <label for="location" class="block text-sm font-medium text-gray-700 mb-1">Location (optional)</label>
+                <input type="text" id="location" name="location" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Add your location">
             </div>
             
-            <!-- Submit Button -->
-            <div class="flex justify-end">
-                <button type="submit" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200">
-                    <i class="fas fa-paper-plane mr-2"></i> Post
+            <div class="text-center">
+                <button type="submit" class="px-6 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                    Post
                 </button>
             </div>
         </form>
     </div>
 </div>
 
-<!-- Loading Overlay -->
-<div id="loading-overlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
-    <div class="bg-white p-6 rounded-lg shadow-md text-center">
-        <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600 mx-auto mb-4"></div>
-        <p class="text-lg">Creating your post...</p>
+<div id="loading-overlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white p-6 rounded-lg shadow-xl">
+        <div class="flex items-center space-x-4">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <p class="text-lg font-medium">Creating your post...</p>
+        </div>
     </div>
 </div>
 {% endblock %}
@@ -71,137 +60,104 @@
 <script>
     $(document).ready(function() {
         // Media upload handling
-        const mediaInput = $('#post-media');
-        const mediaDropArea = $('#media-drop-area');
+        const mediaUploadArea = $('#media-upload-area');
+        const mediaInput = $('#media-input');
         const mediaPreview = $('#media-preview');
-        const browseButton = $('#browse-files');
         
-        // Open file dialog when clicking the browse button
-        browseButton.click(function() {
+        // Open file dialog when clicking on the upload area
+        mediaUploadArea.click(function() {
             mediaInput.click();
         });
         
         // Handle file selection
         mediaInput.change(function() {
-            handleFiles(this.files);
-        });
-        
-        // Drag and drop functionality
-        mediaDropArea.on('dragover', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            $(this).addClass('border-blue-500');
-        });
-        
-        mediaDropArea.on('dragleave', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            $(this).removeClass('border-blue-500');
-        });
-        
-        mediaDropArea.on('drop', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            $(this).removeClass('border-blue-500');
+            const files = this.files;
             
-            const dt = e.originalEvent.dataTransfer;
-            const files = dt.files;
-            
-            handleFiles(files);
-        });
-        
-        // Handle the selected files
-        function handleFiles(files) {
-            if (files.length === 0) return;
-            
-            // Clear previous previews
-            mediaPreview.empty();
-            
-            // Show the preview area
-            mediaPreview.removeClass('hidden');
-            
-            // Process each file
-            for (let i = 0; i < files.length; i++) {
-                const file = files[i];
-                const reader = new FileReader();
+            if (files.length > 0) {
+                mediaPreview.removeClass('hidden');
+                mediaPreview.empty();
                 
-                reader.onload = function(e) {
-                    const previewItem = $('<div class="relative"></div>');
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    const reader = new FileReader();
                     
-                    if (file.type.startsWith('image/')) {
-                        // Image preview
-                        previewItem.append(`
-                            <img src="${e.target.result}" alt="Preview" class="w-full h-48 object-cover rounded-lg">
-                            <button type="button" class="remove-media absolute top-2 right-2 bg-red-600 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-red-700" data-index="${i}">
-                                <i class="fas fa-times"></i>
-                            </button>
-                            <input type="text" placeholder="Add a caption..." class="w-full mt-2 px-3 py-1 border rounded-lg media-caption" data-index="${i}">
-                        `);
-                    } else if (file.type.startsWith('video/')) {
-                        // Video preview
-                        previewItem.append(`
-                            <video src="${e.target.result}" class="w-full h-48 object-cover rounded-lg" controls></video>
-                            <button type="button" class="remove-media absolute top-2 right-2 bg-red-600 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-red-700" data-index="${i}">
-                                <i class="fas fa-times"></i>
-                            </button>
-                            <input type="text" placeholder="Add a caption..." class="w-full mt-2 px-3 py-1 border rounded-lg media-caption" data-index="${i}">
-                        `);
-                    }
+                    reader.onload = function(e) {
+                        const mediaItem = $('<div class="relative"></div>');
+                        
+                        if (file.type.startsWith('image/')) {
+                            mediaItem.append(`<img src="${e.target.result}" class="w-full h-48 object-cover rounded-md">`);
+                        } else if (file.type.startsWith('video/')) {
+                            mediaItem.append(`<video src="${e.target.result}" class="w-full h-48 object-cover rounded-md" controls></video>`);
+                        }
+                        
+                        // Add remove button
+                        const removeBtn = $(`<button class="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                        </button>`);
+                        
+                        removeBtn.click(function() {
+                            mediaItem.remove();
+                            if (mediaPreview.children().length === 0) {
+                                mediaPreview.addClass('hidden');
+                            }
+                        });
+                        
+                        mediaItem.append(removeBtn);
+                        mediaPreview.append(mediaItem);
+                    };
                     
-                    mediaPreview.append(previewItem);
-                };
-                
-                reader.readAsDataURL(file);
-            }
-        }
-        
-        // Remove media item
-        $(document).on('click', '.remove-media', function() {
-            const index = $(this).data('index');
-            $(this).closest('div').remove();
-            
-            // Hide preview area if empty
-            if (mediaPreview.children().length === 0) {
-                mediaPreview.addClass('hidden');
+                    reader.readAsDataURL(file);
+                }
             }
         });
         
         // Form submission
-        $('#create-post-form').submit(function(e) {
+        $('#post-form').submit(function(e) {
             e.preventDefault();
             
             // Show loading overlay
             $('#loading-overlay').removeClass('hidden');
             
             // Create FormData object
-            const formData = new FormData(this);
+            const formData = new FormData();
             
-            // Split hashtags
-            const hashtags = $('#post-hashtags').val().split(' ');
-            formData.delete('hashtags');
-            hashtags.forEach(hashtag => {
-                if (hashtag.trim() !== '') {
-                    // Remove # if present
-                    const tag = hashtag.trim().replace(/^#/, '');
-                    formData.append('hashtags', tag);
+            // Add description
+            formData.append('description', $('#description').val());
+            
+            // Add location if provided
+            const location = $('#location').val();
+            if (location) {
+                formData.append('location', location);
+            }
+            
+            // Add media files
+            const mediaFiles = $('#media-input')[0].files;
+            for (let i = 0; i < mediaFiles.length; i++) {
+                formData.append('media', mediaFiles[i]);
+                
+                // Determine media type
+                const fileType = mediaFiles[i].type.startsWith('image/') ? 'image' : 'video';
+                formData.append('media_types', fileType);
+                
+                // Add empty caption for now
+                formData.append('media_captions', '');
+            }
+            
+            // Process hashtags
+            const hashtagsInput = $('#hashtags').val();
+            const hashtags = hashtagsInput.split(/\s+/).filter(tag => tag.trim() !== '');
+            
+            hashtags.forEach(tag => {
+                // Remove # if present at the beginning
+                const cleanTag = tag.startsWith('#') ? tag.substring(1) : tag;
+                if (cleanTag) {
+                    formData.append('hashtags', cleanTag);
                 }
             });
             
-            // Add media types and captions
-            const mediaFiles = $('#post-media')[0].files;
-            const captions = [];
-            
-            $('.media-caption').each(function() {
-                captions[$(this).data('index')] = $(this).val();
-            });
-            
-            for (let i = 0; i < mediaFiles.length; i++) {
-                const file = mediaFiles[i];
-                const fileType = file.type.startsWith('image/') ? 'image' : 'video';
-                formData.append('media_types', fileType);
-                formData.append('media_captions', captions[i] || '');
-            }
-            
+            // Send AJAX request
             $.ajax({
                 url: '{% url "posts:post-list-create" %}',
                 type: 'POST',
@@ -209,25 +165,40 @@
                 processData: false,
                 contentType: false,
                 headers: {
-                    'Authorization': 'Bearer ' + localStorage.getItem('access_token')
+                    'X-CSRFToken': getCookie('csrftoken')
                 },
                 success: function(response) {
                     // Hide loading overlay
                     $('#loading-overlay').addClass('hidden');
                     
-                    // Redirect to the post detail page
-                    window.location.href = '{% url "posts:post-detail" 0 %}'.replace('0', response.id);
+                    // Redirect to home page
+                    window.location.href = '{% url "home" %}';
                 },
                 error: function(xhr) {
                     // Hide loading overlay
                     $('#loading-overlay').addClass('hidden');
                     
                     // Show error message
-                    alert('Error creating post. Please try again.');
-                    console.error(xhr.responseText);
+                    alert('Error creating post: ' + xhr.responseText);
                 }
             });
         });
+        
+        // Helper function to get CSRF token from cookies
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
     });
 </script>
 {% endblock %} 
