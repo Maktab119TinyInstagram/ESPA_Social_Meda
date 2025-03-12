@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}ESPA Social Network{% endblock %}</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+        }
+        .navbar {
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar fixed top-0 left-0 right-0 z-50 py-3">
+        <div class="container mx-auto flex justify-between items-center px-4">
+            <a href="{% url 'home' %}" class="text-2xl font-bold text-blue-600">ESPA</a>
+            
+            <div class="flex items-center space-x-4">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'posts:explore' %}" class="text-gray-700 hover:text-blue-600">
+                        <i class="fas fa-compass"></i>
+                    </a>
+                    <a href="{% url 'posts:post-create' %}" class="text-gray-700 hover:text-blue-600">
+                        <i class="fas fa-plus-square"></i>
+                    </a>
+                    <a href="{% url 'accounts:profile' %}" class="text-gray-700 hover:text-blue-600">
+                        <i class="fas fa-user"></i>
+                    </a>
+                    <a href="{% url 'logout' %}" class="text-gray-700 hover:text-blue-600">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </a>
+                {% else %}
+                    <a href="{% url 'accounts:register' %}" class="text-gray-700 hover:text-blue-600">Register</a>
+                    <a href="{% url 'login' %}" class="text-gray-700 hover:text-blue-600">Login</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Main Content -->
+    <div class="content mt-20">
+        {% if messages %}
+            <div class="messages mb-4">
+                {% for message in messages %}
+                    <div class="p-4 mb-2 {% if message.tags == 'error' %}bg-red-100 text-red-700{% elif message.tags == 'success' %}bg-green-100 text-green-700{% else %}bg-blue-100 text-blue-700{% endif %} rounded">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        
+        {% block content %}{% endblock %}
+    </div>
+    
+    <!-- Footer -->
+    <footer class="bg-white py-6 mt-10">
+        <div class="container mx-auto px-4 text-center text-gray-600">
+            <p>&copy; 2025 ESPA Social Network. All rights reserved.</p>
+        </div>
+    </footer>
+    
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <!-- Custom JavaScript -->
+    <script>
+        $(document).ready(function() {
+            // AJAX CSRF token setup
+            function getCookie(name) {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    const cookies = document.cookie.split(';');
+                    for (let i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+            
+            const csrftoken = getCookie('csrftoken');
+            
+            $.ajaxSetup({
+                beforeSend: function(xhr, settings) {
+                    if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !this.crossDomain) {
+                        xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                    }
+                }
+            });
+        });
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html> 
