@@ -1,0 +1,233 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Create Post | ESPA Social Network{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+    <div class="bg-white p-6 rounded-lg shadow-md">
+        <h1 class="text-2xl font-bold mb-6">Create a New Post</h1>
+        
+        <form id="create-post-form" enctype="multipart/form-data" class="space-y-6">
+            {% csrf_token %}
+            
+            <!-- Post Description -->
+            <div>
+                <label for="post-description" class="block text-gray-700 mb-2">What's on your mind?</label>
+                <textarea id="post-description" name="description" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" rows="4" placeholder="Share your thoughts..."></textarea>
+            </div>
+            
+            <!-- Media Upload -->
+            <div>
+                <label for="post-media" class="block text-gray-700 mb-2">Add Photos/Videos</label>
+                <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center" id="media-drop-area">
+                    <input type="file" id="post-media" name="media_files" multiple class="hidden" accept="image/*,video/*">
+                    <div class="mb-4">
+                        <i class="fas fa-cloud-upload-alt text-4xl text-gray-400"></i>
+                    </div>
+                    <p class="text-gray-600 mb-2">Drag and drop files here or click to browse</p>
+                    <button type="button" id="browse-files" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition duration-200">
+                        Browse Files
+                    </button>
+                </div>
+                
+                <!-- Preview Area -->
+                <div id="media-preview" class="grid grid-cols-2 gap-4 mt-4 hidden">
+                    <!-- Preview items will be added here dynamically -->
+                </div>
+            </div>
+            
+            <!-- Hashtags -->
+            <div>
+                <label for="post-hashtags" class="block text-gray-700 mb-2">Hashtags</label>
+                <input type="text" id="post-hashtags" name="hashtags" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g. #nature #travel (separate with spaces)">
+            </div>
+            
+            <!-- Location -->
+            <div>
+                <label for="post-location" class="block text-gray-700 mb-2">Location</label>
+                <input type="text" id="post-location" name="location" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Where are you?">
+            </div>
+            
+            <!-- Submit Button -->
+            <div class="flex justify-end">
+                <button type="submit" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200">
+                    <i class="fas fa-paper-plane mr-2"></i> Post
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<div id="loading-overlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+    <div class="bg-white p-6 rounded-lg shadow-md text-center">
+        <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600 mx-auto mb-4"></div>
+        <p class="text-lg">Creating your post...</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Media upload handling
+        const mediaInput = $('#post-media');
+        const mediaDropArea = $('#media-drop-area');
+        const mediaPreview = $('#media-preview');
+        const browseButton = $('#browse-files');
+        
+        // Open file dialog when clicking the browse button
+        browseButton.click(function() {
+            mediaInput.click();
+        });
+        
+        // Handle file selection
+        mediaInput.change(function() {
+            handleFiles(this.files);
+        });
+        
+        // Drag and drop functionality
+        mediaDropArea.on('dragover', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            $(this).addClass('border-blue-500');
+        });
+        
+        mediaDropArea.on('dragleave', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            $(this).removeClass('border-blue-500');
+        });
+        
+        mediaDropArea.on('drop', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            $(this).removeClass('border-blue-500');
+            
+            const dt = e.originalEvent.dataTransfer;
+            const files = dt.files;
+            
+            handleFiles(files);
+        });
+        
+        // Handle the selected files
+        function handleFiles(files) {
+            if (files.length === 0) return;
+            
+            // Clear previous previews
+            mediaPreview.empty();
+            
+            // Show the preview area
+            mediaPreview.removeClass('hidden');
+            
+            // Process each file
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    const previewItem = $('<div class="relative"></div>');
+                    
+                    if (file.type.startsWith('image/')) {
+                        // Image preview
+                        previewItem.append(`
+                            <img src="${e.target.result}" alt="Preview" class="w-full h-48 object-cover rounded-lg">
+                            <button type="button" class="remove-media absolute top-2 right-2 bg-red-600 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-red-700" data-index="${i}">
+                                <i class="fas fa-times"></i>
+                            </button>
+                            <input type="text" placeholder="Add a caption..." class="w-full mt-2 px-3 py-1 border rounded-lg media-caption" data-index="${i}">
+                        `);
+                    } else if (file.type.startsWith('video/')) {
+                        // Video preview
+                        previewItem.append(`
+                            <video src="${e.target.result}" class="w-full h-48 object-cover rounded-lg" controls></video>
+                            <button type="button" class="remove-media absolute top-2 right-2 bg-red-600 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-red-700" data-index="${i}">
+                                <i class="fas fa-times"></i>
+                            </button>
+                            <input type="text" placeholder="Add a caption..." class="w-full mt-2 px-3 py-1 border rounded-lg media-caption" data-index="${i}">
+                        `);
+                    }
+                    
+                    mediaPreview.append(previewItem);
+                };
+                
+                reader.readAsDataURL(file);
+            }
+        }
+        
+        // Remove media item
+        $(document).on('click', '.remove-media', function() {
+            const index = $(this).data('index');
+            $(this).closest('div').remove();
+            
+            // Hide preview area if empty
+            if (mediaPreview.children().length === 0) {
+                mediaPreview.addClass('hidden');
+            }
+        });
+        
+        // Form submission
+        $('#create-post-form').submit(function(e) {
+            e.preventDefault();
+            
+            // Show loading overlay
+            $('#loading-overlay').removeClass('hidden');
+            
+            // Create FormData object
+            const formData = new FormData(this);
+            
+            // Split hashtags
+            const hashtags = $('#post-hashtags').val().split(' ');
+            formData.delete('hashtags');
+            hashtags.forEach(hashtag => {
+                if (hashtag.trim() !== '') {
+                    // Remove # if present
+                    const tag = hashtag.trim().replace(/^#/, '');
+                    formData.append('hashtags', tag);
+                }
+            });
+            
+            // Add media types and captions
+            const mediaFiles = $('#post-media')[0].files;
+            const captions = [];
+            
+            $('.media-caption').each(function() {
+                captions[$(this).data('index')] = $(this).val();
+            });
+            
+            for (let i = 0; i < mediaFiles.length; i++) {
+                const file = mediaFiles[i];
+                const fileType = file.type.startsWith('image/') ? 'image' : 'video';
+                formData.append('media_types', fileType);
+                formData.append('media_captions', captions[i] || '');
+            }
+            
+            $.ajax({
+                url: '{% url "posts:post-list-create" %}',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                headers: {
+                    'Authorization': 'Bearer ' + localStorage.getItem('access_token')
+                },
+                success: function(response) {
+                    // Hide loading overlay
+                    $('#loading-overlay').addClass('hidden');
+                    
+                    // Redirect to the post detail page
+                    window.location.href = '{% url "posts:post-detail" 0 %}'.replace('0', response.id);
+                },
+                error: function(xhr) {
+                    // Hide loading overlay
+                    $('#loading-overlay').addClass('hidden');
+                    
+                    // Show error message
+                    alert('Error creating post. Please try again.');
+                    console.error(xhr.responseText);
+                }
+            });
+        });
+    });
+</script>
+{% endblock %} 

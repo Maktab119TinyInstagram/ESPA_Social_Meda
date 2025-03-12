@@ -1,0 +1,297 @@
+{% extends 'base/base.html' %}
+
+{% block title %}#{{ hashtag.title }} | ESPA Social Network{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    {% if hashtag %}
+        <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold">#{{ hashtag.title }}</h1>
+                    <p class="text-gray-600 mt-2">{{ posts|length }} posts</p>
+                </div>
+                
+                <button class="follow-hashtag-button px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200" data-hashtag-id="{{ hashtag.id }}">
+                    <i class="fas fa-plus mr-2"></i> Follow
+                </button>
+            </div>
+        </div>
+        
+        <div class="grid grid-cols-1 gap-6">
+            {% for post in posts %}
+                <div class="bg-white p-4 rounded-lg shadow-md post-card" data-post-id="{{ post.id }}">
+                    <!-- Post Header -->
+                    <div class="flex items-center mb-4">
+                        {% if post.user.profile_picture %}
+                            <img src="{{ post.user.profile_picture.url }}" alt="{{ post.user.username }}" class="w-10 h-10 rounded-full mr-3">
+                        {% else %}
+                            <div class="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center mr-3">
+                                <span class="text-gray-600 text-lg font-bold">{{ post.user.username.0|upper }}</span>
+                            </div>
+                        {% endif %}
+                        <div>
+                            <h3 class="font-bold">{{ post.user.get_full_name }}</h3>
+                            <p class="text-gray-600 text-sm">
+                                @{{ post.user.username }}
+                                {% if post.location %}
+                                    • {{ post.location }}
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <!-- Post Content -->
+                    {% if post.description %}
+                        <p class="mb-4">{{ post.description }}</p>
+                    {% endif %}
+                    
+                    <!-- Post Media -->
+                    {% if post.media.exists %}
+                        <div class="mb-4 post-media">
+                            {% for media in post.media.all %}
+                                {% if media.file_type == 'image' %}
+                                    <img src="{{ media.file.url }}" alt="{{ media.caption|default:'Post image' }}" class="w-full h-auto rounded-lg mb-2">
+                                {% else %}
+                                    <video src="{{ media.file.url }}" controls class="w-full h-auto rounded-lg mb-2"></video>
+                                {% endif %}
+                                {% if media.caption %}
+                                    <p class="text-gray-600 text-sm mb-2">{{ media.caption }}</p>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Post Hashtags -->
+                    {% if post.hashtags.exists %}
+                        <div class="mb-4">
+                            {% for hashtag in post.hashtags.all %}
+                                <a href="{% url 'posts:hashtag-posts' hashtag.title %}" class="text-blue-600 hover:underline mr-2">#{{ hashtag.title }}</a>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Post Stats -->
+                    <div class="flex justify-between mb-4 text-gray-600 text-sm">
+                        <span>{{ post.get_likes_count }} likes</span>
+                        <span>{{ post.get_comments_count }} comments</span>
+                    </div>
+                    
+                    <!-- Post Actions -->
+                    <div class="flex justify-between border-t border-b py-2 mb-4">
+                        <button class="like-button flex items-center {% if post.is_liked %}text-blue-600{% endif %}" data-post-id="{{ post.id }}">
+                            <i class="fas {% if post.is_liked %}fa-thumbs-up{% else %}fa-thumbs-o-up{% endif %} mr-1"></i> Like
+                        </button>
+                        <button class="comment-button flex items-center" data-post-id="{{ post.id }}">
+                            <i class="fas fa-comment-o mr-1"></i> Comment
+                        </button>
+                        <button class="share-button flex items-center" data-post-id="{{ post.id }}">
+                            <i class="fas fa-share mr-1"></i> Share
+                        </button>
+                    </div>
+                    
+                    <!-- Comments Section -->
+                    <div class="comments-section">
+                        <!-- Comment Form -->
+                        <form class="comment-form mb-4" data-post-id="{{ post.id }}">
+                            <div class="flex">
+                                <input type="text" placeholder="Write a comment..." class="flex-grow px-4 py-2 border rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-r-lg hover:bg-blue-700 transition duration-200">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </div>
+                        </form>
+                        
+                        <!-- Comments List -->
+                        <div class="comments-list">
+                            {% for comment in post.comments.all|slice:":3" %}
+                                <div class="comment mb-3">
+                                    <div class="flex">
+                                        {% if comment.user.profile_picture %}
+                                            <img src="{{ comment.user.profile_picture.url }}" alt="{{ comment.user.username }}" class="w-8 h-8 rounded-full mr-2">
+                                        {% else %}
+                                            <div class="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center mr-2">
+                                                <span class="text-gray-600 text-sm font-bold">{{ comment.user.username.0|upper }}</span>
+                                            </div>
+                                        {% endif %}
+                                        <div class="bg-gray-100 rounded-lg px-3 py-2 flex-grow">
+                                            <p class="font-bold text-sm">{{ comment.user.username }}</p>
+                                            <p>{{ comment.description }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                            
+                            {% if post.comments.count > 3 %}
+                                <a href="{% url 'posts:post-detail' post.id %}" class="text-blue-600 hover:underline text-sm">View all {{ post.comments.count }} comments</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="bg-white p-8 rounded-lg shadow-md text-center">
+                    <h2 class="text-xl font-bold mb-4">No posts found</h2>
+                    <p class="text-gray-600">There are no posts with the hashtag #{{ hashtag.title }} yet.</p>
+                    <a href="{% url 'posts:create' %}" class="inline-block mt-4 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-200">
+                        Create a Post
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="bg-white p-8 rounded-lg shadow-md text-center">
+            <h2 class="text-xl font-bold mb-4">Hashtag not found</h2>
+            <p class="text-gray-600">The hashtag you're looking for doesn't exist.</p>
+            <a href="{% url 'posts:explore' %}" class="inline-block mt-4 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-200">
+                Explore
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Like button click
+        $('.like-button').click(function() {
+            const postId = $(this).data('post-id');
+            const button = $(this);
+            
+            if (button.hasClass('text-blue-600')) {
+                // Unlike the post
+                $.ajax({
+                    url: '{% url "social_interactions:like-delete" "post" 0 %}'.replace('0', postId),
+                    type: 'DELETE',
+                    headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('access_token')
+                    },
+                    success: function() {
+                        // Update UI
+                        button.removeClass('text-blue-600');
+                        button.find('i').removeClass('fa-thumbs-up').addClass('fa-thumbs-o-up');
+                        
+                        // Update like count
+                        const likesCountElement = button.closest('.post-card').find('.post-stats span:first-child');
+                        const likesCount = parseInt(likesCountElement.text());
+                        likesCountElement.text((likesCount - 1) + ' likes');
+                    },
+                    error: function(xhr) {
+                        console.error(xhr.responseText);
+                    }
+                });
+            } else {
+                // Like the post
+                $.ajax({
+                    url: '{% url "social_interactions:like-create" %}',
+                    type: 'POST',
+                    data: {
+                        content_type_str: 'post',
+                        object_id: postId,
+                        like_type: 'like'
+                    },
+                    headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('access_token')
+                    },
+                    success: function() {
+                        // Update UI
+                        button.addClass('text-blue-600');
+                        button.find('i').removeClass('fa-thumbs-o-up').addClass('fa-thumbs-up');
+                        
+                        // Update like count
+                        const likesCountElement = button.closest('.post-card').find('.post-stats span:first-child');
+                        const likesCount = parseInt(likesCountElement.text());
+                        likesCountElement.text((likesCount + 1) + ' likes');
+                    },
+                    error: function(xhr) {
+                        console.error(xhr.responseText);
+                    }
+                });
+            }
+        });
+        
+        // Comment form submission
+        $('.comment-form').submit(function(e) {
+            e.preventDefault();
+            
+            const form = $(this);
+            const postId = form.data('post-id');
+            const commentInput = form.find('input');
+            const comment = commentInput.val().trim();
+            
+            if (comment === '') {
+                return;
+            }
+            
+            $.ajax({
+                url: '{% url "social_interactions:comment-create" %}',
+                type: 'POST',
+                data: {
+                    post: postId,
+                    description: comment
+                },
+                headers: {
+                    'Authorization': 'Bearer ' + localStorage.getItem('access_token')
+                },
+                success: function(response) {
+                    // Clear the input
+                    commentInput.val('');
+                    
+                    // Reload the page to show the new comment
+                    window.location.reload();
+                },
+                error: function(xhr) {
+                    console.error(xhr.responseText);
+                }
+            });
+        });
+        
+        // Follow hashtag button click
+        $('.follow-hashtag-button').click(function() {
+            const hashtagId = $(this).data('hashtag-id');
+            const button = $(this);
+            
+            if (button.hasClass('bg-blue-600')) {
+                // Follow the hashtag
+                $.ajax({
+                    url: '{% url "social_interactions:hashtag-follow" %}',
+                    type: 'POST',
+                    data: {
+                        hashtag: hashtagId
+                    },
+                    headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('access_token')
+                    },
+                    success: function() {
+                        // Update UI
+                        button.removeClass('bg-blue-600 hover:bg-blue-700')
+                              .addClass('bg-gray-200 hover:bg-gray-300 text-gray-700')
+                              .html('<i class="fas fa-check mr-2"></i> Following');
+                    },
+                    error: function(xhr) {
+                        console.error(xhr.responseText);
+                    }
+                });
+            } else {
+                // Unfollow the hashtag
+                $.ajax({
+                    url: '{% url "social_interactions:hashtag-unfollow" %}' + hashtagId + '/',
+                    type: 'DELETE',
+                    headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('access_token')
+                    },
+                    success: function() {
+                        // Update UI
+                        button.removeClass('bg-gray-200 hover:bg-gray-300 text-gray-700')
+                              .addClass('bg-blue-600 hover:bg-blue-700 text-white')
+                              .html('<i class="fas fa-plus mr-2"></i> Follow');
+                    },
+                    error: function(xhr) {
+                        console.error(xhr.responseText);
+                    }
+                });
+            }
+        });
+    });
+</script>
+{% endblock %} 

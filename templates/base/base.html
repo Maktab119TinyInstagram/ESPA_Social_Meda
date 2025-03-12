@@ -9,22 +9,25 @@
     <script src="https://cdn.tailwindcss.com"></script>
     
     <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     
     <!-- Custom CSS -->
     <style>
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f0f2f5;
         }
+        
         .navbar {
-            background-color: white;
+            background-color: #ffffff;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
-        .content {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
+        
+        .active-nav-link {
+            color: #3b82f6;
+            border-bottom: 2px solid #3b82f6;
         }
     </style>
     
@@ -32,85 +35,149 @@
 </head>
 <body>
     <!-- Navbar -->
-    <nav class="navbar fixed top-0 left-0 right-0 z-50 py-3">
-        <div class="container mx-auto flex justify-between items-center px-4">
-            <a href="{% url 'home' %}" class="text-2xl font-bold text-blue-600">ESPA</a>
+    <nav class="navbar fixed top-0 left-0 right-0 z-50">
+        <div class="container mx-auto px-4 py-2">
+            <div class="flex justify-between items-center">
+                <!-- Logo -->
+                <a href="{% url 'home' %}" class="text-2xl font-bold text-blue-600">ESPA</a>
+                
+                <!-- Search Bar (Medium and larger screens) -->
+                <div class="hidden md:block w-1/3">
+                    <form action="{% url 'posts:search' %}" method="GET" class="relative">
+                        <input type="text" name="q" placeholder="Search..." class="w-full px-4 py-2 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <button type="submit" class="absolute right-3 top-2 text-gray-500">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </form>
+                </div>
+                
+                <!-- Navigation Links -->
+                <div class="flex items-center space-x-6">
+                    <a href="{% url 'home' %}" class="nav-link py-4 px-2 {% if request.resolver_match.url_name == 'home' %}active-nav-link{% endif %}">
+                        <i class="fas fa-home text-xl"></i>
+                    </a>
+                    <a href="{% url 'posts:explore' %}" class="nav-link py-4 px-2 {% if request.resolver_match.url_name == 'explore' %}active-nav-link{% endif %}">
+                        <i class="fas fa-compass text-xl"></i>
+                    </a>
+                    <a href="{% url 'posts:create' %}" class="nav-link py-4 px-2 {% if request.resolver_match.url_name == 'create' %}active-nav-link{% endif %}">
+                        <i class="fas fa-plus-square text-xl"></i>
+                    </a>
+                    <a href="{% url 'social_interactions:notifications' %}" class="nav-link py-4 px-2 {% if request.resolver_match.url_name == 'notifications' %}active-nav-link{% endif %}">
+                        <i class="fas fa-bell text-xl"></i>
+                    </a>
+                    
+                    <!-- User Dropdown -->
+                    <div class="relative" id="user-dropdown">
+                        <button class="flex items-center focus:outline-none">
+                            {% if user.profile_picture %}
+                                <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}" class="w-8 h-8 rounded-full">
+                            {% else %}
+                                <div class="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center">
+                                    <span class="text-gray-600 font-bold">{{ user.username.0|upper }}</span>
+                                </div>
+                            {% endif %}
+                        </button>
+                        
+                        <div class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 hidden" id="dropdown-menu">
+                            <a href="{% url 'accounts:profile' user.username %}" class="block px-4 py-2 text-gray-800 hover:bg-gray-100">
+                                <i class="fas fa-user mr-2"></i> Profile
+                            </a>
+                            <a href="{% url 'accounts:settings' %}" class="block px-4 py-2 text-gray-800 hover:bg-gray-100">
+                                <i class="fas fa-cog mr-2"></i> Settings
+                            </a>
+                            <div class="border-t border-gray-200 my-1"></div>
+                            <a href="{% url 'logout' %}" class="block px-4 py-2 text-gray-800 hover:bg-gray-100">
+                                <i class="fas fa-sign-out-alt mr-2"></i> Logout
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
             
-            <div class="flex items-center space-x-4">
-                {% if user.is_authenticated %}
-                    <a href="{% url 'posts:explore' %}" class="text-gray-700 hover:text-blue-600">
-                        <i class="fas fa-compass"></i>
-                    </a>
-                    <a href="{% url 'posts:post-create' %}" class="text-gray-700 hover:text-blue-600">
-                        <i class="fas fa-plus-square"></i>
-                    </a>
-                    <a href="{% url 'accounts:profile' %}" class="text-gray-700 hover:text-blue-600">
-                        <i class="fas fa-user"></i>
-                    </a>
-                    <a href="{% url 'logout' %}" class="text-gray-700 hover:text-blue-600">
-                        <i class="fas fa-sign-out-alt"></i>
-                    </a>
-                {% else %}
-                    <a href="{% url 'accounts:register' %}" class="text-gray-700 hover:text-blue-600">Register</a>
-                    <a href="{% url 'login' %}" class="text-gray-700 hover:text-blue-600">Login</a>
-                {% endif %}
+            <!-- Search Bar (Small screens) -->
+            <div class="md:hidden mt-2">
+                <form action="{% url 'posts:search' %}" method="GET" class="relative">
+                    <input type="text" name="q" placeholder="Search..." class="w-full px-4 py-2 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <button type="submit" class="absolute right-3 top-2 text-gray-500">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </form>
             </div>
         </div>
     </nav>
     
     <!-- Main Content -->
-    <div class="content mt-20">
-        {% if messages %}
-            <div class="messages mb-4">
-                {% for message in messages %}
-                    <div class="p-4 mb-2 {% if message.tags == 'error' %}bg-red-100 text-red-700{% elif message.tags == 'success' %}bg-green-100 text-green-700{% else %}bg-blue-100 text-blue-700{% endif %} rounded">
-                        {{ message }}
-                    </div>
-                {% endfor %}
-            </div>
-        {% endif %}
-        
+    <div class="container mx-auto px-4 pt-20 pb-10">
         {% block content %}{% endblock %}
     </div>
     
     <!-- Footer -->
     <footer class="bg-white py-6 mt-10">
-        <div class="container mx-auto px-4 text-center text-gray-600">
-            <p>&copy; 2025 ESPA Social Network. All rights reserved.</p>
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-4 md:mb-0">
+                    <p class="text-gray-600">&copy; 2023 ESPA Social Network. All rights reserved.</p>
+                </div>
+                <div class="flex space-x-4">
+                    <a href="#" class="text-gray-600 hover:text-blue-600">
+                        <i class="fab fa-facebook-f"></i>
+                    </a>
+                    <a href="#" class="text-gray-600 hover:text-blue-600">
+                        <i class="fab fa-twitter"></i>
+                    </a>
+                    <a href="#" class="text-gray-600 hover:text-blue-600">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                    <a href="#" class="text-gray-600 hover:text-blue-600">
+                        <i class="fab fa-linkedin-in"></i>
+                    </a>
+                </div>
+            </div>
         </div>
     </footer>
     
-    <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    
-    <!-- Custom JavaScript -->
+    <!-- JavaScript -->
     <script>
-        $(document).ready(function() {
-            // AJAX CSRF token setup
-            function getCookie(name) {
-                let cookieValue = null;
-                if (document.cookie && document.cookie !== '') {
-                    const cookies = document.cookie.split(';');
-                    for (let i = 0; i < cookies.length; i++) {
-                        const cookie = cookies[i].trim();
-                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                            break;
-                        }
-                    }
-                }
-                return cookieValue;
+        // Toggle dropdown menu
+        document.getElementById('user-dropdown').addEventListener('click', function() {
+            document.getElementById('dropdown-menu').classList.toggle('hidden');
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('user-dropdown');
+            const dropdownMenu = document.getElementById('dropdown-menu');
+            
+            if (!dropdown.contains(event.target) && !dropdownMenu.classList.contains('hidden')) {
+                dropdownMenu.classList.add('hidden');
             }
-            
-            const csrftoken = getCookie('csrftoken');
-            
-            $.ajaxSetup({
-                beforeSend: function(xhr, settings) {
-                    if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !this.crossDomain) {
-                        xhr.setRequestHeader("X-CSRFToken", csrftoken);
+        });
+        
+        // CSRF Token for AJAX requests
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
                     }
                 }
-            });
+            }
+            return cookieValue;
+        }
+        
+        const csrftoken = getCookie('csrftoken');
+        
+        // Set up AJAX with CSRF token
+        $.ajaxSetup({
+            beforeSend: function(xhr, settings) {
+                if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !this.crossDomain) {
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                }
+            }
         });
     </script>
     

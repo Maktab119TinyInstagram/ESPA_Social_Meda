@@ -1,0 +1,384 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Explore | ESPA Social Network{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <!-- Left Sidebar -->
+    <div class="hidden md:block">
+        <div class="bg-white p-4 rounded-lg shadow-md mb-4">
+            <h2 class="text-xl font-bold mb-4">Explore</h2>
+            <ul class="space-y-2">
+                <li>
+                    <a href="{% url 'posts:explore' %}?type=trending" class="flex items-center p-2 rounded-lg hover:bg-gray-100 {% if request.GET.type == 'trending' or not request.GET.type %}text-blue-600 font-bold{% endif %}">
+                        <i class="fas fa-fire mr-3"></i>
+                        <span>Trending</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'posts:explore' %}?type=latest" class="flex items-center p-2 rounded-lg hover:bg-gray-100 {% if request.GET.type == 'latest' %}text-blue-600 font-bold{% endif %}">
+                        <i class="fas fa-clock mr-3"></i>
+                        <span>Latest</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'posts:explore' %}?type=people" class="flex items-center p-2 rounded-lg hover:bg-gray-100 {% if request.GET.type == 'people' %}text-blue-600 font-bold{% endif %}">
+                        <i class="fas fa-users mr-3"></i>
+                        <span>People</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'posts:explore' %}?type=photos" class="flex items-center p-2 rounded-lg hover:bg-gray-100 {% if request.GET.type == 'photos' %}text-blue-600 font-bold{% endif %}">
+                        <i class="fas fa-image mr-3"></i>
+                        <span>Photos</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'posts:explore' %}?type=videos" class="flex items-center p-2 rounded-lg hover:bg-gray-100 {% if request.GET.type == 'videos' %}text-blue-600 font-bold{% endif %}">
+                        <i class="fas fa-video mr-3"></i>
+                        <span>Videos</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+        
+        <div class="bg-white p-4 rounded-lg shadow-md">
+            <h2 class="text-xl font-bold mb-4">Popular Hashtags</h2>
+            <div class="space-y-2">
+                {% for hashtag in popular_hashtags %}
+                    <a href="{% url 'posts:hashtag-posts' hashtag.title %}" class="inline-block bg-gray-100 hover:bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2 mb-2">
+                        #{{ hashtag.title }}
+                    </a>
+                {% empty %}
+                    <p class="text-gray-600 text-center">No trending hashtags yet</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="md:col-span-2">
+        {% if request.GET.type == 'people' %}
+            <!-- People Section -->
+            <h2 class="text-2xl font-bold mb-6">Discover People</h2>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {% for user_profile in users %}
+                    <div class="bg-white p-4 rounded-lg shadow-md">
+                        <div class="flex items-center">
+                            {% if user_profile.profile_picture %}
+                                <img src="{{ user_profile.profile_picture.url }}" alt="{{ user_profile.username }}" class="w-16 h-16 rounded-full mr-4">
+                            {% else %}
+                                <div class="w-16 h-16 rounded-full bg-gray-300 flex items-center justify-center mr-4">
+                                    <span class="text-gray-600 text-xl font-bold">{{ user_profile.username.0|upper }}</span>
+                                </div>
+                            {% endif %}
+                            <div>
+                                <h3 class="font-bold text-lg">{{ user_profile.get_full_name }}</h3>
+                                <p class="text-gray-600">@{{ user_profile.username }}</p>
+                                <p class="text-sm text-gray-500 mt-1">{{ user_profile.followers.count }} followers</p>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            {% if user_profile != request.user %}
+                                {% if user_profile in request.user.following.all %}
+                                    <button class="unfollow-button w-full py-2 px-4 border border-gray-300 rounded-lg hover:bg-gray-100 transition duration-200" data-user-id="{{ user_profile.id }}">
+                                        <i class="fas fa-user-check mr-2"></i> Following
+                                    </button>
+                                {% else %}
+                                    <button class="follow-button w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-200" data-user-id="{{ user_profile.id }}">
+                                        <i class="fas fa-user-plus mr-2"></i> Follow
+                                    </button>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="col-span-2 bg-white p-8 rounded-lg shadow-md text-center">
+                        <p class="text-gray-600">No users found</p>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <!-- Posts Section -->
+            <h2 class="text-2xl font-bold mb-6">
+                {% if request.GET.type == 'latest' %}
+                    Latest Posts
+                {% elif request.GET.type == 'photos' %}
+                    Photos
+                {% elif request.GET.type == 'videos' %}
+                    Videos
+                {% else %}
+                    Trending Posts
+                {% endif %}
+            </h2>
+            
+            <div class="grid grid-cols-1 gap-6">
+                {% for post in posts %}
+                    <div class="bg-white p-4 rounded-lg shadow-md post-card" data-post-id="{{ post.id }}">
+                        <!-- Post Header -->
+                        <div class="flex items-center mb-4">
+                            {% if post.user.profile_picture %}
+                                <img src="{{ post.user.profile_picture.url }}" alt="{{ post.user.username }}" class="w-10 h-10 rounded-full mr-3">
+                            {% else %}
+                                <div class="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center mr-3">
+                                    <span class="text-gray-600 text-lg font-bold">{{ post.user.username.0|upper }}</span>
+                                </div>
+                            {% endif %}
+                            <div>
+                                <h3 class="font-bold">{{ post.user.get_full_name }}</h3>
+                                <p class="text-gray-600 text-sm">
+                                    @{{ post.user.username }}
+                                    {% if post.location %}
+                                        • {{ post.location }}
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <!-- Post Content -->
+                        {% if post.description %}
+                            <p class="mb-4">{{ post.description }}</p>
+                        {% endif %}
+                        
+                        <!-- Post Media -->
+                        {% if post.media.exists %}
+                            <div class="mb-4 post-media">
+                                {% for media in post.media.all %}
+                                    {% if media.file_type == 'image' %}
+                                        <img src="{{ media.file.url }}" alt="{{ media.caption|default:'Post image' }}" class="w-full h-auto rounded-lg mb-2">
+                                    {% else %}
+                                        <video src="{{ media.file.url }}" controls class="w-full h-auto rounded-lg mb-2"></video>
+                                    {% endif %}
+                                    {% if media.caption %}
+                                        <p class="text-gray-600 text-sm mb-2">{{ media.caption }}</p>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        
+                        <!-- Post Hashtags -->
+                        {% if post.hashtags.exists %}
+                            <div class="mb-4">
+                                {% for hashtag in post.hashtags.all %}
+                                    <a href="{% url 'posts:hashtag-posts' hashtag.title %}" class="text-blue-600 hover:underline mr-2">#{{ hashtag.title }}</a>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        
+                        <!-- Post Stats -->
+                        <div class="flex justify-between mb-4 text-gray-600 text-sm">
+                            <span>{{ post.get_likes_count }} likes</span>
+                            <span>{{ post.get_comments_count }} comments</span>
+                        </div>
+                        
+                        <!-- Post Actions -->
+                        <div class="flex justify-between border-t border-b py-2 mb-4">
+                            <button class="like-button flex items-center {% if post.is_liked %}text-blue-600{% endif %}" data-post-id="{{ post.id }}">
+                                <i class="fas {% if post.is_liked %}fa-thumbs-up{% else %}fa-thumbs-o-up{% endif %} mr-1"></i> Like
+                            </button>
+                            <button class="comment-button flex items-center" data-post-id="{{ post.id }}">
+                                <i class="fas fa-comment-o mr-1"></i> Comment
+                            </button>
+                            <button class="share-button flex items-center" data-post-id="{{ post.id }}">
+                                <i class="fas fa-share mr-1"></i> Share
+                            </button>
+                        </div>
+                        
+                        <!-- Comments Section -->
+                        <div class="comments-section">
+                            <!-- Comment Form -->
+                            <form class="comment-form mb-4" data-post-id="{{ post.id }}">
+                                <div class="flex">
+                                    <input type="text" placeholder="Write a comment..." class="flex-grow px-4 py-2 border rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-r-lg hover:bg-blue-700 transition duration-200">
+                                        <i class="fas fa-paper-plane"></i>
+                                    </button>
+                                </div>
+                            </form>
+                            
+                            <!-- Comments List -->
+                            <div class="comments-list">
+                                {% for comment in post.comments.all|slice:":3" %}
+                                    <div class="comment mb-3">
+                                        <div class="flex">
+                                            {% if comment.user.profile_picture %}
+                                                <img src="{{ comment.user.profile_picture.url }}" alt="{{ comment.user.username }}" class="w-8 h-8 rounded-full mr-2">
+                                            {% else %}
+                                                <div class="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center mr-2">
+                                                    <span class="text-gray-600 text-sm font-bold">{{ comment.user.username.0|upper }}</span>
+                                                </div>
+                                            {% endif %}
+                                            <div class="bg-gray-100 rounded-lg px-3 py-2 flex-grow">
+                                                <p class="font-bold text-sm">{{ comment.user.username }}</p>
+                                                <p>{{ comment.description }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                                
+                                {% if post.comments.count > 3 %}
+                                    <a href="{% url 'posts:post-detail' post.id %}" class="text-blue-600 hover:underline text-sm">View all {{ post.comments.count }} comments</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="bg-white p-8 rounded-lg shadow-md text-center">
+                        <p class="text-gray-600">No posts found</p>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Like button click
+        $('.like-button').click(function() {
+            const postId = $(this).data('post-id');
+            const button = $(this);
+            
+            if (button.hasClass('text-blue-600')) {
+                // Unlike the post
+                $.ajax({
+                    url: '{% url "social_interactions:like-delete" "post" 0 %}'.replace('0', postId),
+                    type: 'DELETE',
+                    headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('access_token')
+                    },
+                    success: function() {
+                        // Update UI
+                        button.removeClass('text-blue-600');
+                        button.find('i').removeClass('fa-thumbs-up').addClass('fa-thumbs-o-up');
+                        
+                        // Update like count
+                        const likesCountElement = button.closest('.post-card').find('.post-stats span:first-child');
+                        const likesCount = parseInt(likesCountElement.text());
+                        likesCountElement.text((likesCount - 1) + ' likes');
+                    },
+                    error: function(xhr) {
+                        console.error(xhr.responseText);
+                    }
+                });
+            } else {
+                // Like the post
+                $.ajax({
+                    url: '{% url "social_interactions:like-create" %}',
+                    type: 'POST',
+                    data: {
+                        content_type_str: 'post',
+                        object_id: postId,
+                        like_type: 'like'
+                    },
+                    headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('access_token')
+                    },
+                    success: function() {
+                        // Update UI
+                        button.addClass('text-blue-600');
+                        button.find('i').removeClass('fa-thumbs-o-up').addClass('fa-thumbs-up');
+                        
+                        // Update like count
+                        const likesCountElement = button.closest('.post-card').find('.post-stats span:first-child');
+                        const likesCount = parseInt(likesCountElement.text());
+                        likesCountElement.text((likesCount + 1) + ' likes');
+                    },
+                    error: function(xhr) {
+                        console.error(xhr.responseText);
+                    }
+                });
+            }
+        });
+        
+        // Comment form submission
+        $('.comment-form').submit(function(e) {
+            e.preventDefault();
+            
+            const form = $(this);
+            const postId = form.data('post-id');
+            const commentInput = form.find('input');
+            const comment = commentInput.val().trim();
+            
+            if (comment === '') {
+                return;
+            }
+            
+            $.ajax({
+                url: '{% url "social_interactions:comment-create" %}',
+                type: 'POST',
+                data: {
+                    post: postId,
+                    description: comment
+                },
+                headers: {
+                    'Authorization': 'Bearer ' + localStorage.getItem('access_token')
+                },
+                success: function(response) {
+                    // Clear the input
+                    commentInput.val('');
+                    
+                    // Reload the page to show the new comment
+                    window.location.reload();
+                },
+                error: function(xhr) {
+                    console.error(xhr.responseText);
+                }
+            });
+        });
+        
+        // Follow button click
+        $('.follow-button').click(function() {
+            const userId = $(this).data('user-id');
+            const button = $(this);
+            
+            $.ajax({
+                url: '{% url "social_interactions:follow-create" %}',
+                type: 'POST',
+                data: {
+                    following: userId
+                },
+                headers: {
+                    'Authorization': 'Bearer ' + localStorage.getItem('access_token')
+                },
+                success: function() {
+                    // Update UI
+                    button.removeClass('follow-button bg-blue-600 text-white hover:bg-blue-700')
+                          .addClass('unfollow-button border border-gray-300 hover:bg-gray-100')
+                          .html('<i class="fas fa-user-check mr-2"></i> Following');
+                },
+                error: function(xhr) {
+                    console.error(xhr.responseText);
+                }
+            });
+        });
+        
+        // Unfollow button click
+        $('.unfollow-button').click(function() {
+            const userId = $(this).data('user-id');
+            const button = $(this);
+            
+            $.ajax({
+                url: '{% url "social_interactions:follow-delete" %}' + userId + '/',
+                type: 'DELETE',
+                headers: {
+                    'Authorization': 'Bearer ' + localStorage.getItem('access_token')
+                },
+                success: function() {
+                    // Update UI
+                    button.removeClass('unfollow-button border border-gray-300 hover:bg-gray-100')
+                          .addClass('follow-button bg-blue-600 text-white hover:bg-blue-700')
+                          .html('<i class="fas fa-user-plus mr-2"></i> Follow');
+                },
+                error: function(xhr) {
+                    console.error(xhr.responseText);
+                }
+            });
+        });
+    });
+</script>
+{% endblock %} 
