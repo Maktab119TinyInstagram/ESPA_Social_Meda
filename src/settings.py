@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'debug_toolbar',
     'admin_interface',
+    'colorfield',
 ]
 
 MIDDLEWARE = [
