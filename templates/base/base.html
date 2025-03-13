@@ -184,7 +184,42 @@
         
         const csrftoken = getCookie('csrftoken');
         
-        // Set up AJAX with CSRF token
+        // Function to store tokens when received
+        function storeTokens(tokens) {
+            localStorage.setItem('access_token', tokens.access);
+            localStorage.setItem('refresh_token', tokens.refresh);
+            // Also store in cookie for middleware
+            document.cookie = `access_token=${tokens.access}; path=/`;
+        }
+        
+        // Function to refresh token
+        function refreshToken() {
+            const refreshToken = localStorage.getItem('refresh_token');
+            if (!refreshToken) return Promise.reject('No refresh token available');
+            
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    url: '/api/accounts/token/refresh/',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ refresh: refreshToken }),
+                    success: function(response) {
+                        localStorage.setItem('access_token', response.access);
+                        document.cookie = `access_token=${response.access}; path=/`;
+                        resolve(response.access);
+                    },
+                    error: function() {
+                        // Clear tokens if refresh fails
+                        localStorage.removeItem('access_token');
+                        localStorage.removeItem('refresh_token');
+                        document.cookie = 'access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+                        reject('Failed to refresh token');
+                    }
+                });
+            });
+        }
+        
+        // Set up AJAX with CSRF token and JWT
         $.ajaxSetup({
             beforeSend: function(xhr, settings) {
                 if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !this.crossDomain) {
@@ -199,18 +234,42 @@
             }
         });
         
+        // Add global AJAX error handler for 401 responses
+        $(document).ajaxError(function(event, jqXHR, settings, thrownError) {
+            if (jqXHR.status === 401) {
+                // Try to refresh token and retry the original request
+                refreshToken()
+                    .then(newToken => {
+                        // Clone the original ajax settings
+                        const ajaxSettings = {...settings};
+                        
+                        // Update authorization header with new token
+                        if (!ajaxSettings.headers) {
+                            ajaxSettings.headers = {};
+                        }
+                        ajaxSettings.headers.Authorization = `Bearer ${newToken}`;
+                        
+                        // Retry the original request
+                        $.ajax(ajaxSettings);
+                    })
+                    .catch(() => {
+                        // Redirect to login if token refresh fails
+                        window.location.href = '/login/?next=' + encodeURIComponent(window.location.pathname);
+                    });
+            }
+        });
+        
         // Check if user is authenticated
         $(document).ready(function() {
-            // We don't need to check for token here anymore as we're using Django's session authentication
-            // The JWTAuthenticationMiddleware will handle JWT tokens
-            // This check is left empty intentionally, as the server-side authentication will take care of redirects
             // If we're on login, register, or password-reset pages, we don't need to check authentication
-            if (window.location.pathname === '/login/' || window.location.pathname === '/register/' || window.location.pathname === '/password-reset/') {
-                // No need to check authentication on these pages
+            if (window.location.pathname === '/login/' || 
+                window.location.pathname === '/register/' || 
+                window.location.pathname === '/password-reset/' ||
+                window.location.pathname.startsWith('/accounts/')) {
                 return;
             }
             
-            // For API calls, we'll still use the JWT token if available
+            // For API calls, we'll use the JWT token if available
             const token = localStorage.getItem('access_token');
             if (token) {
                 // Add the token to the Authorization header for all AJAX requests

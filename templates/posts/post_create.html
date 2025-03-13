@@ -134,12 +134,16 @@
             
             // Add media files
             const mediaFiles = $('#media-input')[0].files;
+            console.log(`Number of files selected: ${mediaFiles.length}`);
+            
             for (let i = 0; i < mediaFiles.length; i++) {
-                formData.append('media', mediaFiles[i]);
+                formData.append('media_files', mediaFiles[i]);
+                console.log(`Appending file: ${mediaFiles[i].name}, type: ${mediaFiles[i].type}`);
                 
                 // Determine media type
                 const fileType = mediaFiles[i].type.startsWith('image/') ? 'image' : 'video';
                 formData.append('media_types', fileType);
+                console.log(`Appending media type: ${fileType}`);
                 
                 // Add empty caption for now
                 formData.append('media_captions', '');
@@ -154,32 +158,54 @@
                 const cleanTag = tag.startsWith('#') ? tag.substring(1) : tag;
                 if (cleanTag) {
                     formData.append('hashtags', cleanTag);
+                    console.log(`Appending hashtag: ${cleanTag}`);
                 }
             });
             
             // Send AJAX request
             $.ajax({
-                url: '{% url "posts:post-list-create" %}',
+                url: '/api/posts/',
                 type: 'POST',
                 data: formData,
                 processData: false,
                 contentType: false,
                 headers: {
-                    'X-CSRFToken': getCookie('csrftoken')
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Accept': 'application/json'
                 },
                 success: function(response) {
                     // Hide loading overlay
                     $('#loading-overlay').addClass('hidden');
+                    console.log('Post created successfully:', response);
                     
                     // Redirect to home page
                     window.location.href = '{% url "home" %}';
                 },
-                error: function(xhr) {
+                error: function(xhr, status, error) {
                     // Hide loading overlay
                     $('#loading-overlay').addClass('hidden');
                     
+                    console.error('Error creating post:', xhr.responseText);
+                    console.error('Status:', status);
+                    console.error('Error:', error);
+                    
                     // Show error message
-                    alert('Error creating post: ' + xhr.responseText);
+                    let errorMessage = 'Error creating post. Please try again.';
+                    try {
+                        const response = JSON.parse(xhr.responseText);
+                        if (response.detail) {
+                            errorMessage = response.detail;
+                        } else if (response.message) {
+                            errorMessage = response.message;
+                        }
+                    } catch (e) {
+                        // If parsing fails, use xhr.responseText directly
+                        if (xhr.responseText) {
+                            errorMessage = xhr.responseText;
+                        }
+                    }
+                    
+                    alert(errorMessage);
                 }
             });
         });

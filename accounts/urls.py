@@ -4,7 +4,7 @@ from rest_framework_simplejwt.views import TokenRefreshView
 from .views import (
     RegisterView, OTPVerificationView, OTPRequestView,
     UserProfileView, UserProfileUpdateView, PasswordChangeView,
-    UserDetailView, UserSearchView, LoginAPIView
+    UserDetailView, UserSearchView, LoginAPIView, ProfileView
 )
 
 app_name = 'accounts'
@@ -25,4 +25,8 @@ urlpatterns = [
     # User details
     path('users/<int:pk>/', UserDetailView.as_view(), name='user-detail'),
     path('users/search/', UserSearchView.as_view(), name='user-search'),
+    
+    # Web views
+    path('profile/view/', ProfileView.as_view(), name='profile'),
+    path('profile/view/<int:pk>/', ProfileView.as_view(), name='profile-with-id'),
 ] 

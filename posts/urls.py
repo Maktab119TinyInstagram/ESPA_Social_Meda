@@ -45,4 +45,5 @@ urlpatterns = [
     path('hashtag/<str:tag>/', HashtagPostsView.as_view(), name='hashtag-posts'),
 ]
 
-# For API usage, we'll use the api_urlpatterns without adding them to urlpatterns 
+# Add API endpoints to urlpatterns
+urlpatterns += api_urlpatterns 

@@ -1,0 +1,236 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{{ user.username }}'s Profile | ESPA Social Network{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <!-- Profile Header -->
+        <div class="bg-secondary text-light p-6">
+            <div class="flex flex-col md:flex-row items-center">
+                <!-- Profile Picture -->
+                <div class="w-32 h-32 rounded-full overflow-hidden bg-primary flex items-center justify-center mr-0 md:mr-6 mb-4 md:mb-0">
+                    {% if user.profile_picture %}
+                        <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}" class="w-full h-full object-cover">
+                    {% else %}
+                        <span class="text-5xl font-bold text-light">{{ user.username.0|upper }}</span>
+                    {% endif %}
+                </div>
+                
+                <!-- User Info -->
+                <div class="text-center md:text-left">
+                    <h1 class="text-2xl font-bold">{{ user.username }}</h1>
+                    <p class="text-gray-300 mt-1">
+                        {{ user.first_name }} {{ user.last_name }}
+                        {% if user.location %} • {{ user.location }}{% endif %}
+                    </p>
+                    
+                    <!-- Stats -->
+                    <div class="flex justify-center md:justify-start mt-3 space-x-6">
+                        <div>
+                            <span class="font-bold">{{ posts_count }}</span> posts
+                        </div>
+                        <div>
+                            <span class="font-bold">{{ followers_count }}</span> followers
+                        </div>
+                        <div>
+                            <span class="font-bold">{{ following_count }}</span> following
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Action Buttons (only shown if viewing own profile) -->
+                <div class="ml-auto mt-4 md:mt-0">
+                    {% if request.user.id == user.id %}
+                        <a href="{% url 'profile-update' %}" class="bg-primary text-white py-2 px-4 rounded-lg hover:bg-opacity-90 transition">
+                            Edit Profile
+                        </a>
+                    {% else %}
+                        <!-- Follow/Unfollow button here for other users' profiles -->
+                        <button class="follow-button bg-primary text-white py-2 px-4 rounded-lg hover:bg-opacity-90 transition" data-user-id="{{ user.id }}">
+                            Follow
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Bio -->
+            {% if user.bio %}
+                <div class="mt-6">
+                    <p>{{ user.bio }}</p>
+                </div>
+            {% endif %}
+            
+            <!-- Website -->
+            {% if user.website %}
+                <div class="mt-3">
+                    <a href="{{ user.website }}" target="_blank" class="text-primary hover:underline">
+                        {{ user.website }}
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Tabs Navigation -->
+        <div class="border-b border-gray-200">
+            <nav class="-mb-px flex">
+                <a href="#" class="tab-link active border-b-2 border-primary px-6 py-3 text-primary font-medium" data-tab="posts">
+                    <i class="fas fa-th mr-2"></i> Posts
+                </a>
+                <a href="#" class="tab-link border-b-2 border-transparent px-6 py-3 text-gray-500 hover:text-primary font-medium" data-tab="saved">
+                    <i class="fas fa-bookmark mr-2"></i> Saved
+                </a>
+                <a href="#" class="tab-link border-b-2 border-transparent px-6 py-3 text-gray-500 hover:text-primary font-medium" data-tab="tagged">
+                    <i class="fas fa-tag mr-2"></i> Tagged
+                </a>
+            </nav>
+        </div>
+        
+        <!-- Posts Tab Content -->
+        <div id="posts-tab" class="tab-content p-6">
+            {% if posts %}
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                    {% for post in posts %}
+                        <div class="post-item relative overflow-hidden bg-gray-100 rounded-lg aspect-square">
+                            <a href="{% url 'posts:post-detail' post.id %}">
+                                {% if post.media.all %}
+                                    {% with first_media=post.media.first %}
+                                        {% if first_media.file_type == 'image' %}
+                                            <img src="{{ first_media.file.url }}" alt="Post by {{ post.user.username }}" class="w-full h-full object-cover">
+                                        {% else %}
+                                            <div class="flex items-center justify-center w-full h-full bg-gray-800">
+                                                <i class="fas fa-video text-4xl text-white"></i>
+                                            </div>
+                                        {% endif %}
+                                    {% endwith %}
+                                {% else %}
+                                    <div class="flex items-center justify-center w-full h-full bg-gray-200">
+                                        <i class="fas fa-file-alt text-4xl text-gray-400"></i>
+                                    </div>
+                                {% endif %}
+                                
+                                <!-- Overlay with stats -->
+                                <div class="absolute inset-0 bg-black bg-opacity-30 opacity-0 hover:opacity-100 flex items-center justify-center space-x-6 text-white transition">
+                                    <div class="flex items-center">
+                                        <i class="fas fa-heart mr-2"></i>
+                                        <span>{{ post.get_likes_count }}</span>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <i class="fas fa-comment mr-2"></i>
+                                        <span>{{ post.get_comments_count }}</span>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="flex flex-col items-center justify-center py-12">
+                    <i class="fas fa-camera text-5xl text-gray-300 mb-4"></i>
+                    <p class="text-xl text-gray-500">No posts yet</p>
+                    {% if request.user.id == user.id %}
+                        <a href="{% url 'posts:post-create' %}" class="mt-4 text-primary hover:underline">Share your first post</a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Saved Tab Content (hidden by default) -->
+        <div id="saved-tab" class="tab-content p-6 hidden">
+            <div class="flex flex-col items-center justify-center py-12">
+                <i class="fas fa-bookmark text-5xl text-gray-300 mb-4"></i>
+                <p class="text-xl text-gray-500">No saved posts</p>
+            </div>
+        </div>
+        
+        <!-- Tagged Tab Content (hidden by default) -->
+        <div id="tagged-tab" class="tab-content p-6 hidden">
+            <div class="flex flex-col items-center justify-center py-12">
+                <i class="fas fa-tag text-5xl text-gray-300 mb-4"></i>
+                <p class="text-xl text-gray-500">No tagged posts</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function() {
+        // Tab switching functionality
+        $('.tab-link').click(function(e) {
+            e.preventDefault();
+            
+            // Get the tab to show
+            const tabToShow = $(this).data('tab');
+            
+            // Hide all tab contents and remove active class from all tabs
+            $('.tab-content').addClass('hidden');
+            $('.tab-link').removeClass('active border-primary text-primary').addClass('border-transparent text-gray-500');
+            
+            // Show the selected tab content and mark tab as active
+            $(`#${tabToShow}-tab`).removeClass('hidden');
+            $(this).addClass('active border-primary text-primary').removeClass('border-transparent text-gray-500');
+        });
+        
+        // Follow/Unfollow functionality
+        $('.follow-button').click(function() {
+            const button = $(this);
+            const userId = button.data('user-id');
+            const isFollowing = button.hasClass('following');
+            
+            if (isFollowing) {
+                // Unfollow request
+                $.ajax({
+                    url: `/api/social/follows/${userId}/`,
+                    type: 'DELETE',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    success: function() {
+                        button.removeClass('following bg-gray-200')
+                              .addClass('bg-primary text-white')
+                              .text('Follow');
+                              
+                        // Update followers count
+                        const countElement = $('.followers-count');
+                        if (countElement.length) {
+                            let count = parseInt(countElement.text()) - 1;
+                            countElement.text(count);
+                        }
+                    },
+                    error: function(xhr) {
+                        console.error('Error unfollowing user:', xhr.responseText);
+                        alert('Failed to unfollow user. Please try again.');
+                    }
+                });
+            } else {
+                // Follow request
+                $.ajax({
+                    url: '/api/social/follows/',
+                    type: 'POST',
+                    data: JSON.stringify({ following: userId }),
+                    contentType: 'application/json',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    success: function() {
+                        button.addClass('following bg-gray-200')
+                              .removeClass('bg-primary text-white')
+                              .text('Following');
+                              
+                        // Update followers count
+                        const countElement = $('.followers-count');
+                        if (countElement.length) {
+                            let count = parseInt(countElement.text()) + 1;
+                            countElement.text(count);
+                        }
+                    },
+                    error: function(xhr) {
+                        console.error('Error following user:', xhr.responseText);
+                        alert('Failed to follow user. Please try again.');
+                    }
+                });
+            }
+        });
+    });
+</script>
+{% endblock %} 

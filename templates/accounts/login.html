@@ -17,6 +17,8 @@
             </div>
         {% endif %}
         
+        <div id="error-message" class="hidden p-4 mb-4 bg-red-100 text-red-700 rounded"></div>
+        
         <form id="login-form" class="space-y-4">
             {% csrf_token %}
             <div>
@@ -52,6 +54,33 @@
 {% block extra_js %}
 <script>
     $(document).ready(function() {
+        // For Django CSRF Token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        
+        const csrftoken = getCookie('csrftoken');
+        
+        // Set up AJAX with CSRF token
+        $.ajaxSetup({
+            beforeSend: function(xhr, settings) {
+                if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !this.crossDomain) {
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                }
+            }
+        });
+        
         $('#login-form').submit(function(e) {
             e.preventDefault();
             
@@ -59,29 +88,66 @@
             const password = $('#password').val();
             const remember = $('#remember').is(':checked');
             
+            // Hide any previous error messages
+            $('#error-message').addClass('hidden').html('');
+            
+            // Log the data being sent for debugging
+            console.log('Sending login request with data:', {
+                username: username,
+                password: password.replace(/./g, '*'), // Mask password in logs
+                remember: remember
+            });
+            
             $.ajax({
                 url: '/api/accounts/login/',
                 type: 'POST',
-                data: {
+                contentType: 'application/json',
+                data: JSON.stringify({
                     username: username,
                     password: password,
-                    remember: remember,
-                    csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val()
-                },
+                    remember: remember
+                }),
                 success: function(response) {
-                    // Store the JWT token in localStorage for future API calls
-                    localStorage.setItem('access_token', response.access);
-                    localStorage.setItem('refresh_token', response.refresh);
+                    console.log('Login success! Storing tokens and redirecting');
+                    
+                    // Store the JWT token using the function from base.html
+                    if (typeof storeTokens === 'function') {
+                        storeTokens(response);
+                    } else {
+                        // Fallback if function not available
+                        localStorage.setItem('access_token', response.access);
+                        localStorage.setItem('refresh_token', response.refresh);
+                        document.cookie = `access_token=${response.access}; path=/`;
+                    }
                     
                     // Reload the page completely to ensure Django session is recognized
                     window.location.replace('{% url "home" %}');
                 },
-                error: function(xhr) {
+                error: function(xhr, status, error) {
                     let errorMessage = 'Login failed. Please check your credentials and try again.';
-                    if (xhr.responseJSON && xhr.responseJSON.error) {
-                        errorMessage = xhr.responseJSON.error;
+                    
+                    // Log the complete error response for debugging
+                    console.error('Login error:', {
+                        status: xhr.status,
+                        statusText: xhr.statusText,
+                        responseText: xhr.responseText
+                    });
+                    
+                    try {
+                        const responseData = JSON.parse(xhr.responseText);
+                        if (responseData.error) {
+                            errorMessage = responseData.error;
+                        } else if (responseData.detail) {
+                            errorMessage = responseData.detail;
+                        } else if (responseData.non_field_errors) {
+                            errorMessage = responseData.non_field_errors.join(', ');
+                        }
+                    } catch (e) {
+                        console.error('Error parsing response:', e);
                     }
-                    alert(errorMessage);
+                    
+                    // Display error message on the page
+                    $('#error-message').removeClass('hidden').html(errorMessage);
                 }
             });
         });
